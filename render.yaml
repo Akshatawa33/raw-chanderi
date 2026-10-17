@@ -1,26 +1,24 @@
-# Render blueprint: Render > New > Blueprint > pick this GitHub repo. It creates the API server with a disk for the database.
+# Render blueprint: Render > New > Blueprint > pick this GitHub repo. It creates the API server.
 # Values marked sync: false are asked for on the Render screen (secrets never go into git).
 services:
   - type: web
     name: neelkora-api
     runtime: node
-    plan: starter            # disks need a paid plan; on free the database is wiped on every restart
+    plan: free               # the data lives in Turso (free), so Render's wiped disk doesn't matter
     buildCommand: "true"     # nothing to install: the server uses Node built-ins only
     startCommand: node server/server.js
     healthCheckPath: /config.js
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "24"
       - key: NODE_ENV
         value: production
-      - key: DB_FILE
-        value: /data/neelkora.db
       - key: TRUST_PROXY
         value: "1"
+      - key: TURSO_URL             # libsql://... from the Turso dashboard; without it the server falls back to a local file that Render wipes
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
       - key: ALLOWED_ORIGINS       # your Netlify address, e.g. https://neelkora.netlify.app (comma-separate a custom domain)
         sync: false
       - key: GOOGLE_CLIENT_ID
