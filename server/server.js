@@ -6,7 +6,6 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const {DatabaseSync} = require('node:sqlite');
 
 try { process.loadEnvFile(path.join(__dirname, '.env')); } catch { /* no .env: dev defaults */ }
 const ENV = process.env;
@@ -28,10 +27,9 @@ const live = {pay: !!(cfg.razorpayKey && cfg.razorpaySecret), mail: !!cfg.resend
 if (PROD && (!live.pay || !live.sms)) console.warn('[warn] production without Razorpay or SMS keys: test payments and on-screen codes are disabled, those features will refuse requests.');
 
 // ---------- database ----------
-const db = new DatabaseSync(ENV.DB_FILE || path.join(__dirname, 'neelkora.db'));
-db.exec(`
-  PRAGMA journal_mode = WAL;
-  PRAGMA foreign_keys = ON;
+// Turso (hosted SQLite, free plan keeps data) when TURSO_URL is set, otherwise a local SQLite file.
+// Both give q(sql).get/all/run; callers always await them, so the same code runs on either.
+const SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY, email TEXT UNIQUE COLLATE NOCASE, phone TEXT UNIQUE, name TEXT NOT NULL,
     password_hash TEXT, google_sub TEXT UNIQUE, created_at INTEGER NOT NULL);
@@ -45,8 +43,37 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS orders_user ON orders(user_id);
   CREATE TABLE IF NOT EXISTS otps (phone TEXT PRIMARY KEY, code_hash TEXT NOT NULL, expires_at INTEGER NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, sent_at INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS emails (id INTEGER PRIMARY KEY, to_addr TEXT, subject TEXT, html TEXT, status TEXT, detail TEXT, created_at INTEGER);
-`);
-const q = sql => db.prepare(sql);
+`;
+const TURSO_URL = (ENV.TURSO_URL || '').replace(/^(libsql|turso):\/\//, 'https://').replace(/\/$/, '');
+let q, dbReady;
+if (TURSO_URL) {
+  // Turso's HTTP API: each call is one pipeline request. Integers travel as strings so large numbers stay exact.
+  const toArg = v => v == null ? {type: 'null'} : typeof v === 'number' || typeof v === 'bigint'
+    ? (Number.isInteger(Number(v)) ? {type: 'integer', value: String(v)} : {type: 'float', value: Number(v)}) : {type: 'text', value: String(v)};
+  const fromCell = c => c.type === 'null' ? null : c.type === 'integer' ? Number(c.value) : c.value;
+  const pipeline = async stmts => {
+    const r = await fetch(TURSO_URL + '/v2/pipeline', {method: 'POST',
+      headers: {Authorization: `Bearer ${ENV.TURSO_AUTH_TOKEN || ''}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({requests: [...stmts.map(([sql, args = []]) => ({type: 'execute', stmt: {sql, args: args.map(toArg)}})), {type: 'close'}]})});
+    if (!r.ok) throw new Error(`Turso ${r.status}: ${(await r.text()).slice(0, 300)}`);
+    const out = (await r.json()).results.slice(0, stmts.length);
+    const bad = out.find(x => x.type !== 'ok'); if (bad) throw new Error('Turso: ' + (bad.error?.message || JSON.stringify(bad)));
+    return out.map(x => x.response.result);
+  };
+  const rows = res => res.rows.map(row => Object.fromEntries(res.cols.map((c, i) => [c.name, fromCell(row[i])])));
+  q = sql => ({
+    get: async (...a) => rows((await pipeline([[sql, a]]))[0])[0],
+    all: async (...a) => rows((await pipeline([[sql, a]]))[0]),
+    run: async (...a) => { const [res] = await pipeline([[sql, a]]); return {changes: res.affected_row_count, lastInsertRowid: res.last_insert_rowid == null ? null : Number(res.last_insert_rowid)}; },
+  });
+  dbReady = pipeline(SCHEMA.split(';').map(s => s.trim()).filter(Boolean).map(s => [s]));
+} else {
+  const {DatabaseSync} = require('node:sqlite');
+  const db = new DatabaseSync(ENV.DB_FILE || path.join(__dirname, 'neelkora.db'));
+  db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;' + SCHEMA);
+  q = sql => db.prepare(sql);   // sync results; awaiting them is harmless
+  dbReady = Promise.resolve();
+}
 
 // ---------- small helpers ----------
 const now = () => Date.now();
@@ -71,20 +98,21 @@ const limit = (key, max, windowMs, message) => {
   if (!h || h.reset < t) return void hits.set(key, {n: 1, reset: t + windowMs});
   if (++h.n > max) fail(429, 'rate_limited', message || 'Too many attempts. Please wait a few minutes and try again.');
 };
-setInterval(() => { const t = now(); for (const [k, h] of hits) if (h.reset < t) hits.delete(k); q('DELETE FROM sessions WHERE expires_at < ?').run(t); }, 10 * 60e3).unref();
+setInterval(() => { const t = now(); for (const [k, h] of hits) if (h.reset < t) hits.delete(k);
+  (async () => q('DELETE FROM sessions WHERE expires_at < ?').run(t))().catch(err => console.error('[cleanup]', err)); }, 10 * 60e3).unref();
 
 // ---------- sessions ----------
 const SESSION_DAYS = 30, COOKIE = 'nk_sid';
 const parseCookies = h => Object.fromEntries((h || '').split(';').map(c => c.trim().split('=')).filter(p => p[0]).map(([k, ...v]) => [k, decodeURIComponent(v.join('='))]));
 const cookie = (value, maxAge) => `${COOKIE}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${PROD ? '; Secure' : ''}`;
-const startSession = (res, userId) => {
+const startSession = async (res, userId) => {
   const token = rand();
-  q('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)').run(sha256(token), userId, now() + SESSION_DAYS * 864e5);
+  await q('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)').run(sha256(token), userId, now() + SESSION_DAYS * 864e5);
   res.setHeader('Set-Cookie', cookie(token, SESSION_DAYS * 86400));
 };
-const currentUser = req => {
+const currentUser = async req => {
   const token = parseCookies(req.headers.cookie)[COOKIE]; if (!token) return null;
-  const row = q('SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?').get(sha256(token), now());
+  const row = await q('SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?').get(sha256(token), now());
   return row || null;
 };
 // phones: Indian numbers are kept as 10 digits (as the SMS sign-in always did); other countries keep their full +code form
@@ -93,9 +121,9 @@ const storedPhone = e164 => e164.startsWith('+91') ? e164.slice(3) : e164;
 
 // ---------- profile, wishlist, orders ----------
 const DEFAULT_PROFILE = {addresses: [], upi: [], cards: [], prefPay: 'UPI', phone: ''};
-const getProfile = uid => ({...DEFAULT_PROFILE, ...JSON.parse(q('SELECT data FROM profiles WHERE user_id = ?').get(uid)?.data || '{}')});
-const getWishlist = uid => JSON.parse(q('SELECT ids FROM wishlists WHERE user_id = ?').get(uid)?.ids || '[]');
-const ordersFor = uid => q('SELECT data, status, payment_id, token FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 100').all(uid)
+const getProfile = async uid => ({...DEFAULT_PROFILE, ...JSON.parse((await q('SELECT data FROM profiles WHERE user_id = ?').get(uid))?.data || '{}')});
+const getWishlist = async uid => JSON.parse((await q('SELECT ids FROM wishlists WHERE user_id = ?').get(uid))?.ids || '[]');
+const ordersFor = async uid => (await q('SELECT data, status, payment_id, token FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 100').all(uid))
   .map(r => ({...JSON.parse(r.data), status: r.status, paymentId: r.payment_id || JSON.parse(r.data).paymentId, token: r.token}));
 
 // validate everything a profile may contain; anything unexpected is dropped, card numbers can never get in
@@ -132,14 +160,15 @@ async function sendSMS(phone, text) {
 }
 async function sendEmail(to, subject, html) {
   const log = q('INSERT INTO emails (to_addr, subject, html, status, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)');
-  if (!live.mail) { log.run(to, subject, html, 'logged', 'no RESEND_API_KEY', now()); return {sent: false, reason: 'not-configured'}; }
+  if (!live.mail) { await log.run(to, subject, html, 'logged', 'no RESEND_API_KEY', now()); return {sent: false, reason: 'not-configured'}; }
+  let status, detail;
   try {
     const r = await fetch('https://api.resend.com/emails', {method: 'POST', headers: {Authorization: `Bearer ${cfg.resendKey}`, 'Content-Type': 'application/json'},
       body: JSON.stringify({from: cfg.mailFrom, to: [to], subject, html})});
-    const body = await r.text();
-    log.run(to, subject, html, r.ok ? 'sent' : 'failed', body.slice(0, 500), now());
-    return r.ok ? {sent: true} : {sent: false, reason: 'error'};
-  } catch (err) { log.run(to, subject, html, 'failed', String(err), now()); return {sent: false, reason: 'error'}; }
+    status = r.ok ? 'sent' : 'failed'; detail = (await r.text()).slice(0, 500);
+  } catch (err) { status = 'failed'; detail = String(err); }
+  await log.run(to, subject, html, status, detail, now());
+  return status === 'sent' ? {sent: true} : {sent: false, reason: 'error'};
 }
 async function verifyGoogle(credential) {
   if (!live.google) fail(400, 'google_off', 'Google sign-in is not set up on this server.');
@@ -192,9 +221,9 @@ const receiptHTML = o => {
     </table></div>`;
 };
 const confirmOrder = async (orderId, paymentId) => {
-  q('UPDATE orders SET status = ?, payment_id = ? WHERE id = ?').run(paymentId === 'COD' ? 'placed' : 'paid', paymentId, orderId);
-  const row = q('SELECT data FROM orders WHERE id = ?').get(orderId), o = {...JSON.parse(row.data), paymentId};
-  q('UPDATE orders SET data = ? WHERE id = ?').run(JSON.stringify(o), orderId);
+  await q('UPDATE orders SET status = ?, payment_id = ? WHERE id = ?').run(paymentId === 'COD' ? 'placed' : 'paid', paymentId, orderId);
+  const row = await q('SELECT data FROM orders WHERE id = ?').get(orderId), o = {...JSON.parse(row.data), paymentId};
+  await q('UPDATE orders SET data = ? WHERE id = ?').run(JSON.stringify(o), orderId);
   const mail = await sendEmail(o.email, `Your Neelkora order ${o.id}`, receiptHTML(o));
   return {order: o, email: mail};
 };
@@ -217,7 +246,7 @@ const ip = req => (ENV.TRUST_PROXY && String(req.headers['x-forwarded-for'] || '
 const ALLOWED = new Set((ENV.ALLOWED_ORIGINS || '').split(',').map(s => s.trim().replace(/\/$/, '')).filter(Boolean));
 const originOk = req => { const o = req.headers.origin; if (!o) return true;
   try { return new URL(o).host === req.headers.host || ALLOWED.has(o.replace(/\/$/, '')); } catch { return false; } };
-const needUser = req => currentUser(req) || fail(401, 'signed_out', 'Please sign in again.');
+const needUser = async req => (await currentUser(req)) || fail(401, 'signed_out', 'Please sign in again.');
 
 // ---------- API routes ----------
 const routes = {
@@ -227,10 +256,9 @@ const routes = {
     res.end(`window.NK_CONFIG = ${JSON.stringify({razorpayKey: cfg.razorpayKey, googleClientId: cfg.googleClientId, firebase: cfg.firebase, live, api: true})};`);
   },
 
-  'GET /api/me': req => {
-    const u = currentUser(req);
-    if (!u) return {user: null};
-    return {user: publicUser(u), profile: getProfile(u.id), wishlist: getWishlist(u.id), orders: ordersFor(u.id)};
+  'GET /api/me': async req => {
+    const u = await currentUser(req);
+    return u ? mePayload(u.id, u) : {user: null};
   },
 
   'POST /api/auth/signup': async (req, res, b) => {
@@ -239,28 +267,28 @@ const routes = {
     if (name.length < 2) fail(400, 'bad_name', 'Enter your name.');
     if (!EMAIL_RE.test(email)) fail(400, 'bad_email', 'Enter an email like name@example.com.');
     if (pw.length < 8 || pw.length > 200) fail(400, 'bad_password', 'Use at least 8 characters.');
-    if (q('SELECT 1 FROM users WHERE email = ?').get(email)) fail(409, 'email_taken', 'An account with this email already exists. Sign in instead.');
-    const {lastInsertRowid: id} = q('INSERT INTO users (email, name, password_hash, created_at) VALUES (?, ?, ?, ?)').run(email, name, hashPassword(pw), now());
-    startSession(res, id);
+    if (await q('SELECT 1 FROM users WHERE email = ?').get(email)) fail(409, 'email_taken', 'An account with this email already exists. Sign in instead.');
+    const {lastInsertRowid: id} = await q('INSERT INTO users (email, name, password_hash, created_at) VALUES (?, ?, ?, ?)').run(email, name, hashPassword(pw), now());
+    await startSession(res, id);
     return mePayload(id);
   },
   'POST /api/auth/login': async (req, res, b) => {
     const email = str(b.email, 200).toLowerCase(), pw = typeof b.password === 'string' ? b.password : '';
     limit('login:' + ip(req), 30, 15 * 60e3); limit('login:' + email, 8, 15 * 60e3);
-    const u = q('SELECT * FROM users WHERE email = ?').get(email);
+    const u = await q('SELECT * FROM users WHERE email = ?').get(email);
     // one message for a wrong email or password; accounts without a password get pointed to their sign-in method
     // (sign-up already tells people an email is taken, so this reveals nothing new; per-email rate limit above slows guessing)
     if (!u || !checkPassword(pw, u.password_hash)) fail(401, 'bad_login', u && !u.password_hash ? 'This account uses Google or a phone code to sign in.' : 'That email and password do not match.');
-    startSession(res, u.id);
+    await startSession(res, u.id);
     return mePayload(u.id);
   },
   'POST /api/auth/google': async (req, res, b) => {
     limit('google:' + ip(req), 30, 15 * 60e3);
     const g = await verifyGoogle(str(b.credential, 4000));
-    let u = q('SELECT * FROM users WHERE google_sub = ? OR email = ?').get(g.sub, g.email);
-    if (!u) u = {id: q('INSERT INTO users (email, name, google_sub, created_at) VALUES (?, ?, ?, ?)').run(g.email, g.name, g.sub, now()).lastInsertRowid};
-    else if (!u.google_sub) q('UPDATE users SET google_sub = ? WHERE id = ?').run(g.sub, u.id);
-    startSession(res, u.id);
+    let u = await q('SELECT * FROM users WHERE google_sub = ? OR email = ?').get(g.sub, g.email);
+    if (!u) u = {id: (await q('INSERT INTO users (email, name, google_sub, created_at) VALUES (?, ?, ?, ?)').run(g.email, g.name, g.sub, now())).lastInsertRowid};
+    else if (!u.google_sub) await q('UPDATE users SET google_sub = ? WHERE id = ?').run(g.sub, u.id);
+    await startSession(res, u.id);
     return mePayload(u.id);
   },
   'POST /api/auth/otp/send': async (req, res, b) => {
@@ -268,72 +296,74 @@ const routes = {
     if (!PHONE_RE.test(phone)) fail(400, 'bad_phone', 'Enter a 10-digit mobile number starting with 6, 7, 8 or 9.');
     if (PROD && !live.sms) fail(503, 'sms_off', 'Phone sign-in is not available right now. Please use email.');
     limit('otp:ip:' + ip(req), 20, 60 * 60e3); limit('otp:ph:' + phone, 5, 60 * 60e3, 'Too many codes for this number. Try again in an hour.');
-    const prev = q('SELECT sent_at FROM otps WHERE phone = ?').get(phone);
+    const prev = await q('SELECT sent_at FROM otps WHERE phone = ?').get(phone);
     if (prev && now() - prev.sent_at < 30e3) fail(429, 'too_soon', 'Please wait 30 seconds before asking for another code.');
     const code = String(crypto.randomInt(100000, 1000000));
-    q('INSERT OR REPLACE INTO otps (phone, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?)').run(phone, sha256(phone + ':' + code), now() + 5 * 60e3, now());
+    await q('INSERT OR REPLACE INTO otps (phone, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?)').run(phone, sha256(phone + ':' + code), now() + 5 * 60e3, now());
     await sendSMS(phone, `${code} is your Neelkora sign-in code. It expires in 5 minutes. Do not share it.`);
-    const isNew = !q('SELECT 1 FROM users WHERE phone = ?').get(phone);
+    const isNew = !(await q('SELECT 1 FROM users WHERE phone = ?').get(phone));
     // dev only: with no SMS provider, hand the code back so the flow can be tested end to end
     return {ok: true, isNew, ...(!live.sms && !PROD ? {devCode: code} : {})};
   },
   'POST /api/auth/otp/verify': async (req, res, b) => {
     const phone = str(b.phone, 10), code = str(b.code, 6), name = str(b.name, 80);
     limit('otpv:' + ip(req), 40, 60 * 60e3);
-    const row = q('SELECT * FROM otps WHERE phone = ?').get(phone);
+    const row = await q('SELECT * FROM otps WHERE phone = ?').get(phone);
     if (!row || row.expires_at < now()) fail(400, 'code_expired', 'That code has expired. Tap Resend to get a new one.');
     if (row.attempts >= 5) fail(429, 'too_many_wrong', 'Too many wrong codes. Tap Resend to get a new code.');
     if (!safeEqual(sha256(phone + ':' + code), row.code_hash)) {
-      q('UPDATE otps SET attempts = attempts + 1 WHERE phone = ?').run(phone);
+      await q('UPDATE otps SET attempts = attempts + 1 WHERE phone = ?').run(phone);
       fail(400, 'wrong_code', 'That code is not right. Check the text message and try again.');
     }
-    let u = q('SELECT * FROM users WHERE phone = ?').get(phone);
+    let u = await q('SELECT * FROM users WHERE phone = ?').get(phone);
     if (!u) {
       if (name.length < 2) fail(400, 'name_required', 'Enter your name.');
-      u = {id: q('INSERT INTO users (phone, name, created_at) VALUES (?, ?, ?)').run(phone, name, now()).lastInsertRowid};
-      q('INSERT INTO profiles (user_id, data) VALUES (?, ?)').run(u.id, JSON.stringify({...DEFAULT_PROFILE, phone}));
+      u = {id: (await q('INSERT INTO users (phone, name, created_at) VALUES (?, ?, ?)').run(phone, name, now())).lastInsertRowid};
+      await q('INSERT INTO profiles (user_id, data) VALUES (?, ?)').run(u.id, JSON.stringify({...DEFAULT_PROFILE, phone}));
     }
-    q('DELETE FROM otps WHERE phone = ?').run(phone);   // a code works once
-    startSession(res, u.id);
+    await q('DELETE FROM otps WHERE phone = ?').run(phone);   // a code works once
+    await startSession(res, u.id);
     return mePayload(u.id);
   },
   // Firebase sent and checked the SMS code in the browser; here the server confirms that sign-in with Google and opens a session
   'POST /api/auth/firebase': async (req, res, b) => {
     limit('fb:' + ip(req), 40, 60 * 60e3);
     const fb = await verifyFirebase(str(b.idToken, 5000)), phone = storedPhone(fb.phone), name = str(b.name, 80);
-    let u = q('SELECT * FROM users WHERE phone = ?').get(phone);
+    let u = await q('SELECT * FROM users WHERE phone = ?').get(phone);
     if (!u) {
       if (name.length < 2) fail(400, 'name_required', 'Enter your name.');   // the token stays valid for an hour, so the browser just asks and resends
-      u = {id: q('INSERT INTO users (phone, name, created_at) VALUES (?, ?, ?)').run(phone, name, now()).lastInsertRowid};
-      q('INSERT INTO profiles (user_id, data) VALUES (?, ?)').run(u.id, JSON.stringify({...DEFAULT_PROFILE, phone: PHONE_RE.test(phone) ? phone : ''}));
+      u = {id: (await q('INSERT INTO users (phone, name, created_at) VALUES (?, ?, ?)').run(phone, name, now())).lastInsertRowid};
+      await q('INSERT INTO profiles (user_id, data) VALUES (?, ?)').run(u.id, JSON.stringify({...DEFAULT_PROFILE, phone: PHONE_RE.test(phone) ? phone : ''}));
     }
-    startSession(res, u.id);
+    await startSession(res, u.id);
     return mePayload(u.id);
   },
-  'POST /api/auth/logout': (req, res) => {
+  'POST /api/auth/logout': async (req, res) => {
     const token = parseCookies(req.headers.cookie)[COOKIE];
-    if (token) q('DELETE FROM sessions WHERE token_hash = ?').run(sha256(token));
+    if (token) await q('DELETE FROM sessions WHERE token_hash = ?').run(sha256(token));
     res.setHeader('Set-Cookie', cookie('', 0));
     return {ok: true};
   },
 
   'PUT /api/profile': async (req, res, b) => {
-    const u = needUser(req);
-    if (b.name !== undefined) { const name = str(b.name, 80); if (name.length < 2) fail(400, 'bad_name', 'Enter your name.'); q('UPDATE users SET name = ? WHERE id = ?').run(name, u.id); }
-    const p = cleanProfile({...getProfile(u.id), ...b});
-    q('INSERT INTO profiles (user_id, data) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data').run(u.id, JSON.stringify(p));
-    return {profile: p, user: publicUser(q('SELECT * FROM users WHERE id = ?').get(u.id))};
+    const u = await needUser(req);
+    const name = b.name === undefined ? null : str(b.name, 80);
+    if (name !== null && name.length < 2) fail(400, 'bad_name', 'Enter your name.');
+    const p = cleanProfile({...await getProfile(u.id), ...b});   // validate everything before writing anything
+    if (name !== null) await q('UPDATE users SET name = ? WHERE id = ?').run(name, u.id);
+    await q('INSERT INTO profiles (user_id, data) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data').run(u.id, JSON.stringify(p));
+    return {profile: p, user: publicUser(name === null ? u : {...u, name})};
   },
   'PUT /api/wishlist': async (req, res, b) => {
-    const u = needUser(req);
+    const u = await needUser(req);
     const ids = [...new Set((Array.isArray(b.ids) ? b.ids : []).filter(id => catalog.get(id)))].slice(0, 100);
-    q('INSERT INTO wishlists (user_id, ids) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET ids = excluded.ids').run(u.id, JSON.stringify(ids));
+    await q('INSERT INTO wishlists (user_id, ids) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET ids = excluded.ids').run(u.id, JSON.stringify(ids));
     return {wishlist: ids};
   },
 
   // create the order: the server prices it from the catalogue and opens the Razorpay order for that exact amount
   'POST /api/orders': async (req, res, b) => {
-    const u = currentUser(req);
+    const u = await currentUser(req);
     limit('order:' + ip(req), 30, 60 * 60e3);
     const items = (Array.isArray(b.items) ? b.items : []).slice(0, 20).map(i => ({id: str(i.id, 20), blouse: str(i.blouse, 20), qty: Math.floor(+i.qty)}));
     if (!items.length) fail(400, 'empty', 'Your bag is empty.');
@@ -355,14 +385,14 @@ const routes = {
     if (pay !== 'Cash on delivery' && live.pay) rzpOrderId = await razorpayOrder(t.total * 100, id);
     if (pay !== 'Cash on delivery' && !live.pay && PROD) fail(503, 'payments_off', 'Online payment is not available right now. Please choose cash on delivery.');
     const token = rand(18);
-    q('INSERT INTO orders (id, user_id, email, data, total, status, rzp_order_id, token, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    await q('INSERT INTO orders (id, user_id, email, data, total, status, rzp_order_id, token, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .run(id, u ? u.id : null, order.email, JSON.stringify(order), t.total, 'pending_payment', rzpOrderId, token, now());
     if (pay === 'Cash on delivery') { const done = await confirmOrder(id, 'COD'); return {order: {...done.order, token, status: 'placed'}, email: done.email}; }
     return {order: {id, total: t.total, token}, payment: live.pay ? {mode: 'razorpay', key: cfg.razorpayKey, orderId: rzpOrderId, amount: t.total * 100} : {mode: 'test'}};
   },
   // confirm payment: Razorpay's signature proves the payment is real and for this order
   'POST /api/orders/pay': async (req, res, b) => {
-    const row = q('SELECT * FROM orders WHERE id = ?').get(str(b.orderId, 20));
+    const row = await q('SELECT * FROM orders WHERE id = ?').get(str(b.orderId, 20));
     if (!row || !safeEqual(str(b.token, 40), row.token)) fail(404, 'no_order', 'Order not found.');
     if (row.status !== 'pending_payment') fail(409, 'already_done', 'This order has already been placed.');
     let paymentId;
@@ -377,14 +407,17 @@ const routes = {
     const done = await confirmOrder(row.id, paymentId);
     return {order: {...done.order, token: row.token, status: 'paid'}, email: done.email};
   },
-  'GET /api/orders/receipt': (req, res, b, url) => {
-    const row = q('SELECT data, token FROM orders WHERE id = ?').get(url.searchParams.get('id') || '');
+  'GET /api/orders/receipt': async (req, res, b, url) => {
+    const row = await q('SELECT data, token FROM orders WHERE id = ?').get(url.searchParams.get('id') || '');
     if (!row || !safeEqual(url.searchParams.get('t') || '', row.token)) { res.writeHead(404, {'Content-Type': 'text/plain'}); return res.end('Not found'); }
     res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'"});
     res.end(receiptHTML(JSON.parse(row.data)));
   },
 };
-const mePayload = uid => ({user: publicUser(q('SELECT * FROM users WHERE id = ?').get(uid)), profile: getProfile(uid), wishlist: getWishlist(uid), orders: ordersFor(uid)});
+const mePayload = async (uid, user) => {
+  const [u, profile, wishlist, orders] = await Promise.all([user || q('SELECT * FROM users WHERE id = ?').get(uid), getProfile(uid), getWishlist(uid), ordersFor(uid)]);
+  return {user: publicUser(u), profile, wishlist, orders};
+};
 
 // ---------- static files ----------
 const TYPES = {'.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml',
@@ -430,7 +463,7 @@ const server = http.createServer(async (req, res) => {
     send(res, 500, {error: 'server_error', message: 'Something went wrong on our side. Please try again.'});
   }
 });
-server.listen(PORT, () => {
-  console.log(`Neelkora running at http://localhost:${PORT}`);
+dbReady.then(() => server.listen(PORT, () => {
+  console.log(`Neelkora running at http://localhost:${PORT}  (database: ${TURSO_URL ? 'Turso' : 'local file'})`);
   console.log(`  payments: ${live.pay ? 'Razorpay LIVE' : 'test mode'} | email: ${live.mail ? 'Resend' : 'logged to db'} | sms: ${live.firebase ? 'Firebase' : live.sms ? 'Twilio' : 'printed here (dev)'} | google: ${live.google ? 'on' : 'off'}`);
-});
+}), err => { console.error('[error] could not open the database. Check TURSO_URL and TURSO_AUTH_TOKEN.', err.message); process.exit(1); });
