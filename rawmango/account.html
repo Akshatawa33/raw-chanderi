@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<script>try{if(!JSON.parse(localStorage.getItem("nk-user")))location.replace("login.html?next=account.html")}catch(e){location.replace("login.html?next=account.html")}</script>
+<title>Your account — Neelkora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  /* greeting band */
+  .ahead{padding-top:clamp(40px,8vh,88px);padding-bottom:36px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .ahead h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.6rem,7vw,6rem);line-height:.92;letter-spacing:-.015em}
+  .ahead .since{margin-top:10px;opacity:.65}
+  .stats{display:flex;gap:clamp(20px,4vw,48px)}
+  .stats a{display:block}
+  .stats b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(2rem,4vw,3rem);line-height:1}
+  .stats span{font-size:.8rem;letter-spacing:.08em;opacity:.65}
+
+  /* layout: sticky section nav + panel */
+  .acct{display:grid;grid-template-columns:220px minmax(0,1fr);gap:clamp(24px,5vw,72px);padding-top:40px}
+  .anav{position:sticky;top:96px;align-self:start;display:flex;flex-direction:column}
+  .anav a{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-family:var(--serif);font-size:1.2rem;opacity:.5;transition:opacity .3s,padding .4s var(--ease)}
+  .anav a small{font-family:var(--sans);font-size:.75rem;opacity:.8}
+  .anav a:hover{opacity:.85}
+  .anav a[aria-current="page"]{opacity:1;padding-left:10px;border-color:var(--fg)}
+  .anav .out{margin-top:20px;justify-content:flex-start;font-family:var(--sans);font-size:.85rem;border:0;background:none;cursor:pointer;opacity:.6;padding:8px 0}
+  @media (max-width:820px){
+    .acct{grid-template-columns:minmax(0,1fr);padding-top:0}
+    .anav{position:sticky;top:61px;z-index:20;flex-direction:row;overflow-x:auto;gap:22px;background:var(--bg);border-bottom:1px solid var(--line);margin:0 calc(-1 * clamp(16px,5vw,72px));padding:0 clamp(16px,5vw,72px);scrollbar-width:none;
+      -webkit-mask-image:linear-gradient(to right,#000 82%,transparent);mask-image:linear-gradient(to right,#000 82%,transparent)}   /* the fade says "more tabs this way" */
+    .anav.end{-webkit-mask-image:none;mask-image:none}
+    .anav::-webkit-scrollbar{display:none}
+    .anav a{border:0;padding:14px 0;font-size:1.05rem;white-space:nowrap;border-bottom:1px solid transparent}
+    .anav a[aria-current="page"]{padding-left:0;border-bottom:1px solid var(--fg)}
+    .anav a small{margin-left:6px}
+    .anav .out{display:none}
+  }
+  .panel[hidden]{display:none}
+  .panel h2{font-family:var(--serif);font-weight:400;font-size:clamp(2rem,4vw,3rem);line-height:1;margin-bottom:8px}
+  .panel .sub{opacity:.7;margin-bottom:28px;line-height:1.6;max-width:40rem}
+  .phead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+  .phead .sub{margin-bottom:0}
+
+  /* overview tiles */
+  .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .tile{background:var(--surface);padding:24px;display:flex;flex-direction:column;gap:10px;min-height:180px}
+  .tile.wide{grid-column:1/-1}
+  .tile h3{font-size:.9rem;letter-spacing:.01em;font-weight:400;opacity:.65}
+  .tile .big{font-family:var(--serif);font-size:1.6rem;line-height:1.15}
+  .tile p{line-height:1.55;opacity:.85}
+  .tile .go{margin-top:auto;font-size:.85rem;text-decoration:underline;text-underline-offset:3px;align-self:flex-start}
+  /* phones: boxes fit their content instead of standing tall and mostly empty */
+  @media (max-width:640px){ .tiles{grid-template-columns:minmax(0,1fr)} .tile{min-height:0;padding:20px} .tile .go{margin-top:6px} }
+
+  /* orders */
+  .ord{border:1px solid var(--line);margin-bottom:14px;background:var(--bg)}
+  .ord > summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:6px 18px;padding:18px 20px}
+  .ord > summary::-webkit-details-marker{display:none}
+  .thumbs{display:flex}
+  .thumbs img{width:44px;height:56px;object-fit:cover;border:2px solid var(--bg);margin-left:-14px;background:var(--ph)}
+  .thumbs img:first-child{margin-left:0}
+  .ord .oid{font-family:var(--serif);font-size:1.25rem}
+  .ord .meta{font-size:.82rem;opacity:.65}
+  .pill{font-size:.72rem;letter-spacing:.08em;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--harda) 24%,transparent);white-space:nowrap}
+  .pill.done{background:color-mix(in srgb,var(--deep) 32%,transparent)}
+  .ord .tot{font-weight:500;white-space:nowrap}
+  .ord .chev{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;transition:transform .4s var(--ease)}
+  .ord[open] .chev{transform:rotate(180deg)}
+  .obody{border-top:1px solid var(--line);padding:24px 20px;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px}
+  @media (max-width:720px){
+    .ord > summary{grid-template-columns:1fr auto;padding:16px}
+    .ord > summary .thumbs{grid-column:1/-1;order:-1}
+    .ord .chev{display:none}
+    .obody{grid-template-columns:minmax(0,1fr);padding:20px 16px}
+  }
+  .timeline{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);list-style:none;position:relative;margin-bottom:4px}
+  .timeline li{position:relative;padding-top:22px;font-size:.82rem;line-height:1.35}
+  .timeline li::before{content:"";position:absolute;top:4px;left:0;width:11px;height:11px;border-radius:50%;border:1px solid var(--fg);background:var(--bg);z-index:1}
+  .timeline li::after{content:"";position:absolute;top:9px;left:11px;right:0;height:1px;background:var(--line)}
+  .timeline li:last-child::after{display:none}
+  .timeline li.on::before{background:var(--harda);border-color:var(--harda)}
+  .timeline li.on::after{background:var(--harda)}
+  .timeline li small{display:block;opacity:.6}
+  .timeline li:not(.on){opacity:.55}
+  .oitems .it{display:grid;grid-template-columns:64px 1fr auto;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+  .oitems img{width:64px;height:80px;object-fit:cover;background:var(--ph)}
+  .oitems b{font-family:var(--serif);font-weight:400;font-size:1.15rem}
+  .oitems p{opacity:.65;font-size:.82rem;line-height:1.5}
+  .osum{margin-top:12px}
+  .osum .grand{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-size:1.1rem}
+  .oside h4{font-size:.85rem;letter-spacing:.01em;font-weight:400;opacity:.65;margin-bottom:6px}
+  .oside p{line-height:1.6;margin-bottom:18px;word-break:break-word}
+  .oacts{display:flex;flex-wrap:wrap;gap:8px}
+  .oacts .btn{padding:11px 16px}
+
+  /* saved things: addresses, UPI, cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .saved{border:1px solid var(--line);padding:20px;display:flex;flex-direction:column;gap:6px;position:relative;line-height:1.55}
+  .saved.def{border-color:var(--fg)}
+  .saved .tag{font-size:.72rem;letter-spacing:.1em;opacity:.65}
+  .saved .badge{position:absolute;top:16px;right:16px;font-size:.7rem;letter-spacing:.08em;padding:4px 10px;border-radius:999px;background:var(--fg);color:var(--bg)}
+  .saved b{font-weight:500}
+  .saved .acts{display:flex;gap:14px;margin-top:auto;padding-top:12px}
+  .saved .acts button{background:none;border:0;cursor:pointer;font-size:.85rem;text-decoration:underline;text-underline-offset:3px;opacity:.75;padding:4px 0}
+  .saved .acts button:hover{opacity:1}
+  .saved .acts .danger{color:var(--err)}
+  .add{border:1px dashed var(--line);display:grid;place-items:center;min-height:170px;cursor:pointer;background:none;font-family:var(--serif);font-size:1.2rem;transition:border-color .3s,background .3s}
+  .add:hover{border-color:var(--fg);background:var(--surface)}
+  .add span{display:block;font-size:2rem;line-height:1;margin-bottom:6px}
+  /* a saved card drawn like a card */
+  .pcard{aspect-ratio:1.6;padding:20px;color:#F4F1EC;background:linear-gradient(135deg,#7A1E2C,#2b0c12 70%);border:0;justify-content:space-between}
+  .pcard.def{outline:2px solid var(--harda);outline-offset:3px}
+  .pcard .badge{background:var(--harda);color:#161412}
+  .pcard .num{font-family:var(--serif);font-size:1.35rem;letter-spacing:.01em}
+  .pcard .row2{display:flex;justify-content:space-between;font-size:.82rem;opacity:.85}
+  .pcard .acts button{color:#F4F1EC}
+  .pcard .acts .danger{color:#F5B4AC}
+  .section-title{font-family:var(--serif);font-weight:400;font-size:1.5rem;margin:36px 0 14px}
+  .prefs{display:flex;gap:8px;flex-wrap:wrap}
+  .prefs label input{position:absolute;opacity:0}
+  .prefs label span{display:inline-block;padding:10px 18px;border:1px solid var(--line);cursor:pointer}
+  .prefs label input:checked+span{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+  .prefs label input:focus-visible+span{outline:1px solid var(--accent);outline-offset:3px}
+  .secure{display:flex;gap:12px;align-items:flex-start;background:var(--surface);padding:16px;font-size:.86rem;line-height:1.55;margin-top:28px}
+  .secure svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--harda);stroke-width:1.6}
+
+  /* forms (in dialogs and profile) */
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fgrid .full{grid-column:1/-1}
+  .f label{display:block;font-size:.8rem;letter-spacing:.06em;margin-bottom:6px}
+  .f input,.f select{width:100%;padding:12px 14px;border:1px solid var(--line);background:var(--surface);border-radius:0}
+  .f input:focus,.f select:focus{border-color:var(--fg);outline:none}
+  .f input[readonly]{opacity:.6}
+  .f .err{display:block;min-height:1.1em;color:var(--err);font-size:.78rem;margin-top:4px}
+  .f.bad input,.f.bad select{border-color:var(--err)}
+  .f .hint{font-size:.78rem;opacity:.6;margin-top:4px}
+  .chk{display:flex;gap:10px;align-items:center;font-size:.9rem;margin:6px 0 18px}
+  .chk input{accent-color:var(--madder);width:18px;height:18px}
+  .labels{display:flex;gap:8px}
+  .formsheet .ps-body{text-align:left;padding:22px 20px 24px}
+  .formsheet{width:min(560px,calc(100% - 24px))}
+  .formsheet .btns{display:flex;gap:10px;margin-top:6px}
+  .formsheet .btns .btn{flex:1}
+  @media (max-width:520px){ .fgrid{grid-template-columns:minmax(0,1fr)} }
+  .profile-form{max-width:560px}
+  .saved-msg{font-size:.86rem;margin-top:12px;min-height:1.2em}
+  .empty-box{border:1px dashed var(--line);padding:40px 24px;text-align:center}
+  .empty-box p{opacity:.7;margin-bottom:18px}
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a href="shop.html">Shop</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li class="hide-sm"><a class="on" href="account.html" data-account>Account</a></li><li><a href="wishlist.html">Wishlist (<span data-wish-count>0</span>)</a></li><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main class="wrap">
+  <section class="ahead">
+    <div><h1 id="hello">Your account</h1><p class="since" id="since"></p></div>
+    <div class="stats">
+      <a href="#orders"><b id="stOrders">0</b><span>Orders</span></a>
+      <a href="wishlist.html"><b data-wish-count>0</b><span>Saved</span></a>
+      <a href="#addresses"><b id="stAddr">0</b><span>Addresses</span></a>
+    </div>
+  </section>
+
+  <div class="acct">
+    <nav class="anav" aria-label="Account sections">
+      <a href="#overview" data-tab="overview">Overview</a>
+      <a href="#orders" data-tab="orders">Orders <small id="nOrders"></small></a>
+      <a href="#addresses" data-tab="addresses">Addresses</a>
+      <a href="#payments" data-tab="payments">Payments</a>
+      <a href="#profile" data-tab="profile">Profile</a>
+      <button class="out" id="signout">Sign out</button>
+    </nav>
+
+    <div>
+      <section class="panel" id="overview" aria-labelledby="h-overview">
+        <h2 id="h-overview">Overview</h2>
+        <p class="sub">Everything about your orders, addresses and payments, in one place.</p>
+        <div class="tiles" id="tiles"></div>
+      </section>
+
+      <section class="panel" id="orders" aria-labelledby="h-orders" hidden>
+        <h2 id="h-orders">Orders</h2>
+        <p class="sub">Every order placed with this email. Open one to see its items, delivery, payment and progress.</p>
+        <div id="olist"></div>
+      </section>
+
+      <section class="panel" id="addresses" aria-labelledby="h-addresses" hidden>
+        <div class="phead"><div><h2 id="h-addresses">Addresses</h2><p class="sub">Your default address is filled in for you at checkout.</p></div></div>
+        <div class="cards" id="alist"></div>
+      </section>
+
+      <section class="panel" id="payments" aria-labelledby="h-payments" hidden>
+        <h2 id="h-payments">Payments</h2>
+        <p class="sub">Choose how you like to pay, and keep your UPI IDs and cards ready for checkout.</p>
+        <h3 class="section-title">Preferred method</h3>
+        <div class="prefs" role="radiogroup" aria-label="Preferred payment method" id="prefs">
+          <label><input type="radio" name="pref" value="UPI"><span>UPI</span></label>
+          <label><input type="radio" name="pref" value="Card"><span>Card</span></label>
+          <label><input type="radio" name="pref" value="Cash on delivery"><span>Cash on delivery</span></label>
+        </div>
+        <h3 class="section-title">UPI IDs</h3>
+        <div class="cards" id="ulist"></div>
+        <h3 class="section-title">Cards</h3>
+        <div class="cards" id="clist"></div>
+        <div class="secure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <p>We never store full card numbers or CVV. Only the card type, last four digits and expiry are kept, so you can recognise the card. The full number is entered in the payment provider's secure window each time you pay.</p></div>
+      </section>
+
+      <section class="panel" id="profile" aria-labelledby="h-profile" hidden>
+        <h2 id="h-profile">Profile</h2>
+        <p class="sub">Your name and phone appear on orders and deliveries.</p>
+        <form class="profile-form" id="pform" novalidate>
+          <div class="fgrid">
+            <div class="f full"><label for="p-name">Full name</label><input id="p-name" autocomplete="name" required minlength="2"><span class="err"></span></div>
+            <div class="f"><label for="p-email">Signed in with</label><input id="p-email" readonly><p class="hint">Your orders are linked to this.</p></div>
+            <div class="f"><label for="p-phone">Mobile number</label><input id="p-phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national"><span class="err"></span></div>
+          </div>
+          <button class="btn dark" type="submit">Save profile</button>
+          <p class="saved-msg" id="pmsg" aria-live="polite"></p>
+        </form>
+        <h3 class="section-title">Saved data</h3>
+        <p class="sub">Remove saved addresses and payment methods from this browser. Your orders stay.</p>
+        <button class="btn" id="wipe">Remove saved addresses and payments</button>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="sfoot"><span class="logo">Neelkora</span><span>Account details are kept in this browser.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script src="config.js"></script>
+<script src="pay.js"></script>
+<script>
+(() => {
+  const {account, profile, orders, money, esc, get, blouseLabel, bag, openBag, states} = NK;
+  const user = account.get(); if (!user) return;
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fmtDate = (t, o = {day: 'numeric', month: 'short', year: 'numeric'}) => new Date(t).toLocaleDateString('en-IN', o);
+
+  // ---------- validation shared by every form here ----------
+  const RULES = {
+    name: [v => v.trim().length >= 2, 'Enter the full name.'],
+    phone: [v => /^[6-9]\d{9}$/.test(v), 'Enter a 10-digit mobile number starting with 6, 7, 8 or 9.'],
+    phoneOpt: [v => !v || /^[6-9]\d{9}$/.test(v), 'Enter a 10-digit mobile number starting with 6, 7, 8 or 9.'],
+    addr: [v => v.trim().length >= 6, 'Enter the house, street and area.'],
+    city: [v => v.trim().length >= 2, 'Enter the city.'],
+    pin: [v => /^[1-9]\d{5}$/.test(v), 'Enter a 6-digit PIN code.'],
+    state: [v => !!v, 'Choose a state.'],
+    upi: [v => /^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(v.trim()), 'Enter a UPI ID like name@okbank.'],
+    last4: [v => /^\d{4}$/.test(v), 'Enter only the last 4 digits.'],
+    expiry: [v => { const m = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(v); if (!m) return false;
+      const end = new Date(2000 + +m[2], +m[1], 1); return end > new Date(); }, 'Enter a future expiry as MM/YY.'],
+  };
+  console.assert(RULES.expiry[0]('01/20') === false && RULES.last4[0]('4242') && !RULES.last4[0]('4242424242424242'), 'account validation');
+  const validate = form => {
+    let first = null;
+    form.querySelectorAll('[data-rule]').forEach(el => {
+      const [ok, msg] = RULES[el.dataset.rule], good = ok(el.value);
+      const f = el.closest('.f'); f.classList.toggle('bad', !good); f.querySelector('.err').textContent = good ? '' : msg;
+      el.setAttribute('aria-invalid', !good); if (!good && !first) first = el;
+    });
+    first?.focus(); return !first;
+  };
+
+  // ---------- small dialog for add/edit forms ----------
+  const sheet = (title, body, onSubmit) => {
+    const d = document.createElement('dialog');
+    d.className = 'paysheet formsheet';
+    d.innerHTML = `<div class="ps-head"><div><b>${title}</b></div><button type="button" class="x" data-close>Cancel</button></div>
+      <form class="ps-body" novalidate>${body}<div class="btns"><button type="button" class="btn" data-close>Cancel</button><button class="btn dark" type="submit">Save</button></div></form>`;
+    document.body.append(d); d.showModal();
+    const close = () => { d.close(); d.remove(); };
+    d.addEventListener('click', e => { if (e.target.closest('[data-close]')) close(); });
+    d.addEventListener('close', () => d.remove());
+    d.querySelector('form').addEventListener('submit', e => { e.preventDefault(); if (validate(e.target) && onSubmit(e.target) !== false) close(); });
+    return d;
+  };
+  const field = (id, label, rule, value = '', attrs = '', cls = '') =>
+    `<div class="f ${cls}"><label for="${id}">${label}</label><input id="${id}" data-rule="${rule}" value="${esc(value)}" ${attrs}><span class="err"></span></div>`;
+  // two-step delete: first press arms it, second press within 3s confirms
+  const armed = new WeakMap();
+  const confirmDelete = (btn, fn) => {
+    if (armed.get(btn)) return fn();
+    armed.set(btn, true); const was = btn.textContent; btn.textContent = 'Tap again to delete';
+    setTimeout(() => { armed.delete(btn); if (btn.isConnected) btn.textContent = was; }, 3000);
+  };
+
+  // ---------- order helpers ----------
+  const myOrders = () => orders.all();   // the server only ever sends this account's own orders
+  const progress = o => {
+    const day = 864e5, age = (Date.now() - o.date) / day, total = o.express ? 2 : 5;
+    const steps = [['Placed', o.date], ['Packed', o.date + day * .5], ['Shipped', o.date + day * (o.express ? 1 : 2)], ['Delivered', o.date + day * total]];
+    const reached = steps.filter(s => Date.now() >= s[1]).length;
+    return {steps, reached, label: steps[reached - 1][0] === 'Placed' ? 'Being packed' : steps[reached - 1][0] === 'Packed' ? 'Packed' : steps[reached - 1][0] === 'Shipped' ? 'On its way' : 'Delivered', done: reached === 4, age};
+  };
+  const orderTotals = o => o.subtotal != null ? o : {...o, subtotal: o.items.reduce((s, i) => s + i.price, 0), discount: 0, shipping: o.express ? NK.EXPRESS : 0};
+  const payLabel = o => o.pay === 'Cash on delivery' ? 'Cash on delivery' : (o.pay === 'UPI' ? 'UPI' : 'Card') + (o.paymentId ? `<br><small>Reference ${esc(o.paymentId)}</small>` : '');
+
+  // ---------- render: overview ----------
+  function drawOverview() {
+    const p = profile.get(), list = myOrders(), last = list[0];
+    const addr = p.addresses.find(a => a.isDefault), upi = p.upi.find(u => u.isDefault), card = p.cards.find(c => c.isDefault);
+    $('tiles').innerHTML = `
+      <div class="tile wide"><h3>Latest order</h3>${last ? (() => { const pr = progress(last); return `
+        <p class="big">${esc(last.id)} <span class="pill ${pr.done ? 'done' : ''}" style="font-family:var(--sans);font-size:.72rem;vertical-align:middle">${pr.label}</span></p>
+        <p>${last.items.map(i => esc(i.name) + ' × ' + i.qty).join(', ')}, ${money(last.total)}. ${pr.done ? 'Delivered.' : 'Arriving by ' + esc(last.eta) + '.'}</p>
+        <a class="go" href="#orders" data-open="${esc(last.id)}">View order details</a>`; })()
+        : `<p>No orders yet.</p><a class="go" href="shop.html">Browse saris</a>`}</div>
+      <div class="tile"><h3>Default address</h3>${addr ? `<p><b>${esc(addr.name)}</b><br>${esc(addr.addr)}<br>${esc(addr.city)} ${esc(addr.pin)}, ${esc(addr.state)}</p>` : '<p>No saved address yet.</p>'}
+        <a class="go" href="#addresses">${addr ? 'Manage addresses' : 'Add an address'}</a></div>
+      <div class="tile"><h3>Payment</h3><p class="big">${esc(p.prefPay)}</p>
+        <p>${p.prefPay === 'UPI' && upi ? esc(upi.vpa) : p.prefPay === 'Card' && card ? `${esc(card.brand)} ending ${esc(card.last4)}` : p.prefPay === 'Cash on delivery' ? 'Pay at your door, for orders under ₹50,000.' : 'Nothing saved yet.'}</p>
+        <a class="go" href="#payments">Manage payments</a></div>`;
+  }
+
+  // ---------- render: orders ----------
+  function drawOrders(openId) {
+    const list = myOrders();
+    $('stOrders').textContent = list.length; $('nOrders').textContent = list.length ? `(${list.length})` : '';
+    if (!list.length) { $('olist').innerHTML = `<div class="empty-box"><p>No orders yet. Orders you place with ${esc(user.email)} will appear here.</p><a class="btn dark" href="shop.html">Browse saris</a></div>`; return; }
+    $('olist').innerHTML = list.map((o, idx) => {
+      const pr = progress(o), t = orderTotals(o), count = o.items.reduce((s, i) => s + i.qty, 0);
+      return `<details class="ord" data-id="${esc(o.id)}" ${(openId ? o.id === openId : idx === 0) ? 'open' : ''}>
+        <summary>
+          <span class="thumbs">${o.items.slice(0, 3).map(i => { const p = get(i.id); return p ? `<img src="${p.img}" alt="">` : ''; }).join('')}</span>
+          <span><span class="oid">${esc(o.id)}</span><br><span class="meta">${fmtDate(o.date)}, ${count} ${count === 1 ? 'sari' : 'saris'}</span></span>
+          <span class="pill ${pr.done ? 'done' : ''}">${pr.label}</span>
+          <span class="tot">${money(o.total)}</span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="obody">
+          <ol class="timeline" aria-label="Order progress">${pr.steps.map(([s, at], i) => `<li class="${i < pr.reached ? 'on' : ''}">${s}<small>${i < pr.reached ? fmtDate(at, {day: 'numeric', month: 'short'}) : i === 3 ? 'By ' + fmtDate(at, {day: 'numeric', month: 'short'}) : 'Soon'}</small></li>`).join('')}</ol>
+          <div>
+            <div class="oitems">${o.items.map(i => { const p = get(i.id); return `
+              <div class="it">${p ? `<a href="product.html?id=${p.id}"><img src="${p.img}" alt="${esc(i.name)} sari"></a>` : '<span></span>'}
+                <div><b>${esc(i.name)}</b><p>${p ? esc(p.weave + ', ' + p.colour) + '<br>' : ''}${esc(i.blouseLabel || blouseLabel(i.blouse))}<br>Quantity ${i.qty}</p></div>
+                <span>${money(i.price)}</span></div>`; }).join('')}</div>
+            <div class="osum">
+              <div class="bag-row"><span>Subtotal</span><span>${money(t.subtotal)}</span></div>
+              ${t.discount ? `<div class="bag-row"><span>Promo</span><span>−${money(t.discount)}</span></div>` : ''}
+              <div class="bag-row"><span>Shipping (${o.express ? 'express' : 'standard'})</span><span>${t.shipping ? money(t.shipping) : 'Free'}</span></div>
+              <div class="bag-row grand"><span>Total</span><b>${money(o.total)}</b></div>
+            </div>
+          </div>
+          <div class="oside">
+            <h4>Delivering to</h4><p>${o.address ? `${esc(o.name)}<br>${esc(o.address)}<br>${esc(o.city)} ${esc(o.pin)}, ${esc(o.state)}${o.phone ? '<br>' + esc(o.phone) : ''}` : 'Address not recorded for this order.'}</p>
+            <h4>Delivery</h4><p>${pr.done ? 'Delivered' : 'Arriving by ' + esc(o.eta)}</p>
+            <h4>Payment</h4><p>${payLabel(o)}</p>
+            <h4>Ordered</h4><p>${new Date(o.date).toLocaleString('en-IN', {dateStyle: 'medium', timeStyle: 'short'})}</p>
+            <div class="oacts">
+              <button class="btn dark" data-again="${esc(o.id)}">Buy again</button>
+              ${o.address ? `<button class="btn" data-mail="${esc(o.id)}">View receipt</button>` : ''}
+            </div>
+          </div>
+        </div>
+      </details>`; }).join('');
+  }
+  $('olist').addEventListener('click', e => {
+    const again = e.target.closest('[data-again]'), mail = e.target.closest('[data-mail]');
+    const find = id => myOrders().find(o => o.id === id);
+    if (again) { find(again.dataset.again).items.forEach(i => get(i.id) && bag.add(i.id, i.blouse, i.qty)); openBag(); }
+    if (mail) { const o = find(mail.dataset.mail); NKPay.previewReceipt({...orderTotals(o), items: o.items.map(i => ({...i, blouseLabel: i.blouseLabel || blouseLabel(i.blouse)}))}); }
+  });
+
+  // ---------- render: addresses ----------
+  function drawAddresses() {
+    const list = profile.get().addresses;
+    $('stAddr').textContent = list.length;
+    $('alist').innerHTML = list.map(a => `
+      <div class="saved ${a.isDefault ? 'def' : ''}">
+        ${a.isDefault ? '<span class="badge">Default</span>' : ''}
+        <span class="tag">${esc(a.label)}</span>
+        <b>${esc(a.name)}</b><span>${esc(a.addr)}<br>${esc(a.city)} ${esc(a.pin)}<br>${esc(a.state)}</span><span>${esc(a.phone)}</span>
+        <div class="acts"><button data-edit="${a.id}">Edit</button>${a.isDefault ? '' : `<button data-def="${a.id}">Make default</button>`}<button class="danger" data-del="${a.id}">Delete</button></div>
+      </div>`).join('') + `<button class="add" id="addAddr"><div><span>+</span>Add an address</div></button>`;
+  }
+  const addressForm = (a = {}) => sheet(a.id ? 'Edit address' : 'New address', `
+    <div class="f"><label>Label</label><div class="prefs labels">${['Home', 'Work', 'Other'].map(l => `<label><input type="radio" name="label" value="${l}" ${(a.label || 'Home') === l ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div><span class="err"></span></div>
+    <div class="fgrid">
+      ${field('a-name', 'Full name', 'name', a.name || user.name, 'autocomplete="name"', 'full')}
+      ${field('a-phone', 'Mobile number', 'phone', a.phone || profile.get().phone || '', 'type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national"', 'full')}
+      ${field('a-addr', 'Address', 'addr', a.addr, 'autocomplete="street-address"', 'full')}
+      ${field('a-city', 'City', 'city', a.city, 'autocomplete="address-level2"')}
+      ${field('a-pin', 'PIN code', 'pin', a.pin, 'inputmode="numeric" maxlength="6" autocomplete="postal-code"')}
+      <div class="f full"><label for="a-state">State</label><select id="a-state" data-rule="state"><option value="">Choose a state</option>${states.map(s => `<option ${a.state === s ? 'selected' : ''}>${s}</option>`).join('')}</select><span class="err"></span></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="a-def" ${a.isDefault || !profile.get().addresses.length ? 'checked' : ''}> Use as my default address</label>`,
+    f => { profile.upsert('addresses', {id: a.id, label: f.label.value, name: f.querySelector('#a-name').value.trim(), phone: f.querySelector('#a-phone').value,
+      addr: f.querySelector('#a-addr').value.trim(), city: f.querySelector('#a-city').value.trim(), pin: f.querySelector('#a-pin').value,
+      state: f.querySelector('#a-state').value, isDefault: f.querySelector('#a-def').checked}); refresh(); });
+  $('alist').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'addAddr' || b.closest('#addAddr')) return addressForm();
+    if (b.dataset.edit) addressForm(profile.get().addresses.find(a => a.id === b.dataset.edit));
+    if (b.dataset.def) { profile.setDefault('addresses', b.dataset.def); refresh(); }
+    if (b.dataset.del) confirmDelete(b, () => { profile.remove('addresses', b.dataset.del); refresh(); });
+  });
+
+  // ---------- render: payments ----------
+  function drawPayments() {
+    const p = profile.get();
+    $('prefs').querySelectorAll('input').forEach(i => i.checked = i.value === p.prefPay);
+    $('ulist').innerHTML = p.upi.map(u => `
+      <div class="saved ${u.isDefault ? 'def' : ''}">${u.isDefault ? '<span class="badge">Default</span>' : ''}
+        <span class="tag">UPI${u.nick ? ', ' + esc(u.nick) : ''}</span><b>${esc(u.vpa)}</b>
+        <div class="acts">${u.isDefault ? '' : `<button data-udef="${u.id}">Make default</button>`}<button class="danger" data-udel="${u.id}">Delete</button></div></div>`).join('')
+      + `<button class="add" id="addUpi"><div><span>+</span>Add a UPI ID</div></button>`;
+    $('clist').innerHTML = p.cards.map(c => `
+      <div class="saved pcard ${c.isDefault ? 'def' : ''}">${c.isDefault ? '<span class="badge">Default</span>' : ''}
+        <span class="tag">${esc(c.brand)}</span>
+        <span class="num">•••• ${esc(c.last4)}</span>
+        <span class="row2"><span>${esc(c.holder)}</span><span>Expires ${esc(c.expiry)}</span></span>
+        <div class="acts" style="padding-top:0">${c.isDefault ? '' : `<button data-cdef="${c.id}">Make default</button>`}<button class="danger" data-cdel="${c.id}">Delete</button></div></div>`).join('')
+      + `<button class="add" id="addCard"><div><span>+</span>Add a card</div></button>`;
+  }
+  $('prefs').addEventListener('change', e => { profile.save({prefPay: e.target.value}); drawOverview(); });
+  $('ulist').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'addUpi') sheet('Add a UPI ID', `<div class="fgrid">
+        ${field('u-vpa', 'UPI ID', 'upi', '', 'autocomplete="off" placeholder="name@okbank"', 'full')}
+        <div class="f full"><label for="u-nick">Nickname (optional)</label><input id="u-nick" placeholder="Personal, GPay…"><span class="err"></span></div></div>
+        <label class="chk"><input type="checkbox" id="u-def" ${profile.get().upi.length ? '' : 'checked'}> Make this my default UPI ID</label>`,
+      f => { profile.upsert('upi', {vpa: f.querySelector('#u-vpa').value.trim().toLowerCase(), nick: f.querySelector('#u-nick').value.trim(), isDefault: f.querySelector('#u-def').checked}); refresh(); });
+    if (b.dataset.udef) { profile.setDefault('upi', b.dataset.udef); refresh(); }
+    if (b.dataset.udel) confirmDelete(b, () => { profile.remove('upi', b.dataset.udel); refresh(); });
+  });
+  $('clist').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'addCard' || b.closest('#addCard')) sheet('Add a card', `
+        <p class="ps-note" style="margin-bottom:16px">Only the card type, last four digits and expiry are saved. Never enter your full card number or CVV here.</p>
+        <div class="fgrid">
+          ${field('c-holder', 'Name on card', 'name', user.name, 'autocomplete="cc-name"', 'full')}
+          <div class="f"><label for="c-brand">Card type</label><select id="c-brand"><option>Visa</option><option>Mastercard</option><option>RuPay</option><option>American Express</option></select><span class="err"></span></div>
+          ${field('c-last4', 'Last 4 digits', 'last4', '', 'inputmode="numeric" maxlength="4" autocomplete="off" placeholder="1234"')}
+          ${field('c-exp', 'Expiry', 'expiry', '', 'inputmode="numeric" maxlength="5" autocomplete="off" placeholder="MM/YY"')}
+        </div>
+        <label class="chk"><input type="checkbox" id="c-def" ${profile.get().cards.length ? '' : 'checked'}> Make this my default card</label>`,
+      f => { profile.upsert('cards', {holder: f.querySelector('#c-holder').value.trim(), brand: f.querySelector('#c-brand').value,
+        last4: f.querySelector('#c-last4').value, expiry: f.querySelector('#c-exp').value, isDefault: f.querySelector('#c-def').checked}); refresh(); });
+    if (b.dataset.cdef) { profile.setDefault('cards', b.dataset.cdef); refresh(); }
+    if (b.dataset.cdel) confirmDelete(b, () => { profile.remove('cards', b.dataset.cdel); refresh(); });
+  });
+  // expiry field: type 0827, get 08/27
+  document.addEventListener('input', e => { if (e.target.id === 'c-exp') { const d = e.target.value.replace(/\D/g, '').slice(0, 4); e.target.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d; }
+    if (e.target.id === 'c-last4' || e.target.id === 'a-pin' || e.target.id === 'a-phone' || e.target.id === 'p-phone') e.target.value = e.target.value.replace(/\D/g, ''); });
+
+  // ---------- profile ----------
+  function drawProfile() { $('p-name').value = account.get().name; $('p-email').value = user.email; $('p-phone').value = profile.get().phone || ''; }
+  $('p-name').dataset.rule = 'name'; $('p-phone').dataset.rule = 'phoneOpt';
+  $('pform').addEventListener('submit', e => {
+    e.preventDefault(); if (!validate(e.target)) return;
+    account.rename($('p-name').value.trim()); profile.save({phone: $('p-phone').value});
+    $('pmsg').textContent = 'Profile saved.'; setTimeout(() => $('pmsg').textContent = '', 2500); refresh();
+  });
+  $('wipe').onclick = e => confirmDelete(e.currentTarget, () => { profile.save({addresses: [], upi: [], cards: []}); refresh(); e.currentTarget.textContent = 'Removed'; });
+  $('signout').onclick = () => { account.signOut(); location.href = 'login.html'; };
+
+  // ---------- header + tabs ----------
+  function refresh() {
+    const u = account.get(), p = profile.get();
+    $('hello').textContent = `Hello, ${u.name.split(' ')[0]}`;
+    $('since').textContent = `${u.email}${p.since ? ', with us since ' + fmtDate(p.since, {month: 'long', year: 'numeric'}) : ''}`;
+    drawOverview(); drawOrders(); drawAddresses(); drawPayments(); drawProfile();
+  }
+  const TABS = ['overview', 'orders', 'addresses', 'payments', 'profile'];
+  const show = (tab, animate = true) => {
+    if (!TABS.includes(tab)) tab = 'overview';
+    TABS.forEach(t => $(t).hidden = t !== tab);
+    document.querySelectorAll('.anav a').forEach(a => a.dataset.tab === tab ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+    document.querySelector(`.anav a[data-tab="${tab}"]`)?.scrollIntoView({block: 'nearest', inline: 'center'});
+    if (animate && window.gsap && !reduce) gsap.from(`#${tab} > *`, {y: 18, opacity: 0, duration: .7, stagger: .05, ease: 'expo.out'});
+  };
+  addEventListener('hashchange', () => show(location.hash.slice(1)));
+  // tabs row on phones: drop the "more this way" fade once scrolled to the end
+  const anav = document.querySelector('.anav'), atEnd = () => anav.classList.toggle('end', anav.scrollLeft + anav.clientWidth >= anav.scrollWidth - 4);
+  anav.addEventListener('scroll', atEnd, {passive: true}); addEventListener('resize', atEnd); atEnd();
+  // fresh data from the server: redraw, or go to sign-in if the session has ended
+  addEventListener('nk:sync', () => { if (!account.get()) return location.replace('login.html?next=account.html'); refresh(); });
+  // "View order details" on the overview opens that exact order
+  document.addEventListener('click', e => { const o = e.target.closest('[data-open]'); if (o) setTimeout(() => { drawOrders(o.dataset.open); }, 0); });
+
+  refresh();
+  show(location.hash.slice(1), false);
+  if (window.gsap && !reduce) gsap.from('.ahead > *', {y: 24, opacity: 0, duration: 1, stagger: .08, ease: 'expo.out'});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<title>Checkout — Neelkora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  .steps{display:flex;gap:28px;list-style:none;padding-top:32px;font-size:.85rem;counter-reset:s}
+  .steps li{counter-increment:s;opacity:.45}
+  .steps li::before{content:counter(s) ". "}
+  .steps li.on{opacity:1;border-bottom:1px solid var(--fg)}
+  .co{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(32px,6vw,96px);padding-top:32px}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.6rem,5.5vw,4.6rem);line-height:.95;margin-bottom:32px}
+  h2{font-family:var(--serif);font-weight:400;font-size:1.6rem;margin:40px 0 16px}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .fields .full{grid-column:1/-1}
+  .f label{display:block;font-size:.8rem;letter-spacing:.06em;margin-bottom:6px}
+  .f input,.f select{width:100%;padding:13px 14px;border:1px solid var(--line);background:var(--surface);border-radius:0;transition:border-color .3s}
+  .f input:focus,.f select:focus{border-color:var(--fg);outline:none}
+  .f .err{display:block;min-height:1.2em;color:var(--err);font-size:.78rem;margin-top:4px}
+  .f.bad input,.f.bad select{border-color:var(--err)}
+  .choice{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px;border:1px solid var(--line);cursor:pointer;margin-bottom:8px;transition:border-color .3s,background .3s}
+  .choice:has(input:checked){border-color:var(--fg);background:var(--surface)}
+  .choice input{accent-color:var(--madder);margin-right:12px}
+  .choice small{display:block;opacity:.6;margin-top:2px}
+  .demo{font-size:.82rem;opacity:.7;margin-top:8px}
+  .summary{position:sticky;top:96px;align-self:start;background:var(--surface);padding:28px}
+  .summary h2{margin-top:0}
+  .sline{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;font-size:.85rem}
+  .sline img{width:56px;height:70px;object-fit:cover}
+  .sline p{opacity:.6}
+  .coupon{display:flex;gap:8px;margin:16px 0}
+  .coupon input{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--line);background:var(--bg)}
+  .coupon .btn{padding:11px 18px}
+  .coupon-msg{font-size:.8rem;min-height:1.2em}
+  .totals{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+  .totals .grand{font-size:1.25rem;border-top:1px solid var(--line);margin-top:8px;padding-top:12px}
+  .place{margin-top:24px}
+  /* minmax(0,1fr), not 1fr: a plain 1fr column grows to its widest child and pushes the page sideways on phones */
+  /* phones: details first, then the summary with its total and Place order button, so you never scroll back up to pay */
+  @media (max-width:860px){ .co{grid-template-columns:minmax(0,1fr)} .summary{position:static} .fields{grid-template-columns:minmax(0,1fr)} }
+  @media (max-width:480px){ .steps{gap:16px;font-size:.8rem} .coupon .btn{padding:11px 14px} .summary{padding:20px} }
+  .done{max-width:44rem;margin:0 auto;text-align:center;padding:clamp(60px,12vh,120px) 0}
+  .done .seal{width:84px;height:84px;margin:0 auto 28px}
+  .done .seal path{fill:none;stroke:var(--madder);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .done p{line-height:1.7;opacity:.8;margin:12px auto;max-width:32rem}
+  .done .ord{font-family:var(--serif);font-size:1.4rem;opacity:1}
+  .addr-pick{display:grid;gap:8px;margin-bottom:18px}
+  .addr-pick label{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--line);cursor:pointer;font-size:.9rem;line-height:1.5}
+  .addr-pick label:has(input:checked){border-color:var(--fg);background:var(--surface)}
+  .addr-pick input{accent-color:var(--madder);margin-top:4px}
+  .addr-pick b{display:block;font-weight:500}
+  .addr-pick .link{justify-self:start}
+  .keep{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:.9rem}
+  .keep input{accent-color:var(--madder);width:18px;height:18px}
+  .done .ref{font-size:.85rem;opacity:.6;word-break:break-all}
+  .done .mailstate{display:inline-block;font-size:.9rem;padding:10px 16px;background:var(--surface);opacity:1}
+  .done .mailstate.ok{background:color-mix(in srgb,var(--deep) 22%,transparent)}
+  .done .btns{display:flex;gap:12px;justify-content:center;margin-top:32px;flex-wrap:wrap}
+  .empty{text-align:center;padding:120px 0}
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a href="shop.html">Shop</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li class="hide-sm"><a href="login.html" data-account>Sign in</a></li><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main class="wrap" id="main">
+  <ol class="steps"><li>Bag</li><li class="on" id="s2">Details</li><li id="s3">Confirmation</li></ol>
+  <div class="co" id="co">
+    <form id="form" novalidate>
+      <h1>Checkout</h1>
+      <h2>Contact</h2>
+      <div class="fields">
+        <div class="f"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required><span class="err"></span></div>
+        <div class="f"><label for="phone">Mobile number</label><input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" pattern="[6-9][0-9]{9}" maxlength="10" required><span class="err"></span></div>
+      </div>
+      <h2>Shipping address</h2>
+      <div class="fields">
+        <div class="f full"><label for="name">Full name</label><input id="name" name="name" autocomplete="name" required minlength="2"><span class="err"></span></div>
+        <div class="f full"><label for="addr">Address</label><input id="addr" name="addr" autocomplete="street-address" required minlength="6"><span class="err"></span></div>
+        <div class="f"><label for="city">City</label><input id="city" name="city" autocomplete="address-level2" required><span class="err"></span></div>
+        <div class="f"><label for="pin">PIN code</label><input id="pin" name="pin" inputmode="numeric" autocomplete="postal-code" pattern="[1-9][0-9]{5}" maxlength="6" required><span class="err"></span></div>
+        <div class="f full"><label for="state">State</label><select id="state" name="state" autocomplete="address-level1" required><option value="">Choose a state</option></select><span class="err"></span></div>
+      </div>
+      <h2>Delivery</h2>
+      <label class="choice"><span><input type="radio" name="ship" value="std" checked>Standard<small>3 to 5 days</small></span><b>Free</b></label>
+      <label class="choice"><span><input type="radio" name="ship" value="exp">Express<small>1 to 2 days</small></span><b id="expPrice"></b></label>
+      <h2>Payment</h2>
+      <label class="choice"><span><input type="radio" name="pay" value="UPI" checked>UPI<small>Any UPI app</small></span></label>
+      <label class="choice"><span><input type="radio" name="pay" value="Card">Credit or debit card<small>Visa, Mastercard, RuPay</small></span></label>
+      <label class="choice"><span><input type="radio" name="pay" value="Cash on delivery">Cash on delivery<small>Orders under ₹50,000</small></span></label>
+      <p class="demo" id="payNote"></p>
+    </form>
+
+    <aside class="summary" aria-label="Order summary">
+      <h2>Your order</h2>
+      <div id="lines"></div>
+      <div class="coupon"><input id="code" placeholder="Gift or promo code" aria-label="Promo code"><button class="btn" type="button" id="apply">Apply</button></div>
+      <p class="coupon-msg" id="codeMsg" aria-live="polite">Try NEELKORA10 for 10% off.</p>
+      <div class="totals" id="totals"></div>
+      <button class="btn dark wide place" form="form" type="submit" id="place">Place order</button>
+      <p class="pay-msg" id="payMsg" role="alert"></p>
+    </aside>
+  </div>
+</main>
+
+<footer class="sfoot"><span class="logo">Neelkora</span><span>Prices include GST.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script src="config.js"></script>
+<script src="pay.js"></script>
+<script>
+(() => {
+  const {get, money, totals, unitPrice, bag, blouseLabel, EXPRESS} = NK;
+  const main = document.getElementById('main'), form = document.getElementById('form');
+  const showEmpty = () => main.innerHTML = `<div class="empty"><h1>Your bag is empty</h1><a class="btn dark" href="shop.html">Browse saris</a></div>`;
+  if (!bag.items().length) return showEmpty();
+
+  NK.states.forEach(s => form.state.add(new Option(s, s)));
+  document.getElementById('expPrice').textContent = money(EXPRESS);
+  const user = NK.account.get();   // signed in: start with what we already know
+  const fill = a => ['name', 'phone', 'addr', 'city', 'pin', 'state'].forEach(k => { if (a[k]) document.getElementById(k).value = a[k]; });
+  if (user) {
+    const p = NK.profile.get(), saved = p.addresses, def = saved.find(a => a.isDefault);
+    // phone sign-ins use "+91…" as their account id: fill the phone box, leave email for them to add
+    const byPhone = !user.email.includes('@');
+    if (!byPhone) document.getElementById('email').value = user.email;
+    fill({name: user.name, phone: byPhone ? user.email.replace(/^\+91/, '') : p.phone});
+    if (def) fill(def);
+    if (p.prefPay) form.pay.value = p.prefPay;   // renderSummary switches away from cash on delivery if the total is too high
+    // saved addresses as one-tap choices above the address fields
+    if (saved.length) {
+      const pick = document.createElement('div');
+      pick.className = 'addr-pick';
+      pick.innerHTML = saved.map(a => `<label><input type="radio" name="savedAddr" value="${a.id}" ${a.isDefault ? 'checked' : ''}><span><b>${NK.esc(a.label)}</b>${NK.esc(a.addr)}, ${NK.esc(a.city)} ${NK.esc(a.pin)}</span></label>`).join('')
+        + `<a class="link" href="account.html#addresses">Manage addresses</a>`;
+      document.querySelector('#name').closest('.fields').before(pick);
+      pick.addEventListener('change', e => { fill(saved.find(a => a.id === e.target.value)); });
+    } else {
+      // first order while signed in: offer to keep this address
+      const keep = document.createElement('label');
+      keep.className = 'keep'; keep.innerHTML = `<input type="checkbox" id="keepAddr" checked> Save this address to my account`;
+      document.querySelector('#state').closest('.fields').after(keep);
+    }
+  }
+
+  document.getElementById('payNote').textContent = NKPay.live
+    ? 'Card and UPI payments are handled by Razorpay in a secure window. Your card details never reach this site.'
+    : 'Test mode: card and UPI payments are simulated until a Razorpay key is added. Nothing is charged.';
+  const syncButton = () => { document.getElementById('place').textContent = form.pay.value === 'Cash on delivery' ? 'Place order' : 'Continue to payment'; };
+
+  let coupon = '';
+  const express = () => form.ship.value === 'exp';
+  const renderSummary = () => {
+    const items = bag.items();
+    if (!items.length) return showEmpty();
+    document.getElementById('lines').innerHTML = items.map(i => { const p = get(i.id); return `
+      <div class="sline"><img src="${p.img}" alt=""><div><b>${p.name}</b> × ${i.qty}<p>${blouseLabel(i.blouse)}</p></div><span>${money(unitPrice(i) * i.qty)}</span></div>`; }).join('');
+    const t = totals(items, coupon, express());
+    document.getElementById('totals').innerHTML = `
+      <div class="bag-row"><span>Subtotal</span><span>${money(t.subtotal)}</span></div>
+      ${t.discount ? `<div class="bag-row"><span>Promo ${coupon.toUpperCase()}</span><span>−${money(t.discount)}</span></div>` : ''}
+      <div class="bag-row"><span>Shipping</span><span>${t.shipping ? money(t.shipping) : 'Free'}</span></div>
+      <div class="bag-row grand"><span>Total</span><b>${money(t.total)}</b></div>`;
+    // cash on delivery is capped, as the label says
+    const cod = form.querySelector('[value="Cash on delivery"]');
+    cod.disabled = t.total >= 50000; if (cod.disabled && cod.checked) form.pay.value = 'UPI';
+    return t;
+  };
+  form.addEventListener('change', e => { if (e.target.name === 'ship') renderSummary(); syncButton(); });
+  // the drawer can change quantities while you are here
+  const watch = new MutationObserver(renderSummary);
+  watch.observe(document.querySelector('[data-bag-count]'), {childList: true});
+
+  document.getElementById('apply').onclick = () => {
+    const c = document.getElementById('code').value, msg = document.getElementById('codeMsg');
+    const t = totals(bag.items(), c);
+    if (t.discount) { coupon = c; msg.textContent = `Code applied: you save ${money(t.discount)}.`; }
+    else { coupon = ''; msg.textContent = c.trim() ? 'That code is not valid. Check the spelling and try again.' : 'Enter a code first.'; }
+    renderSummary();
+  };
+
+  // validation: say what is wrong and how to fix it, next to the field
+  const messages = {
+    email: 'Enter an email like name@example.com.', phone: 'Enter a 10-digit mobile number starting with 6, 7, 8 or 9.',
+    name: 'Enter your full name.', addr: 'Enter your house, street and area.', city: 'Enter your city.',
+    pin: 'Enter a 6-digit PIN code.', state: 'Choose your state.'
+  };
+  const check = el => { const ok = el.checkValidity(); el.closest('.f').classList.toggle('bad', !ok);
+    el.closest('.f').querySelector('.err').textContent = ok ? '' : messages[el.name]; el.setAttribute('aria-invalid', !ok); return ok; };
+  form.querySelectorAll('.f input, .f select').forEach(el => el.addEventListener('blur', () => el.value && check(el)));
+
+  // place the order: the server prices it, saves it and opens the payment; only a confirmed payment completes it
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const bad = [...form.querySelectorAll('.f input, .f select')].filter(el => !check(el));
+    if (bad.length) { bad[0].focus(); return; }
+    renderSummary();
+    const items = bag.items(), btn = document.getElementById('place'), msg = document.getElementById('payMsg');
+    const v = id => document.getElementById(id).value.trim(), method = form.pay.value;
+    msg.textContent = '';
+    btn.disabled = true; btn.textContent = method === 'Cash on delivery' ? 'Placing order…' : 'Opening secure payment…';
+    try {
+      const created = await NK.api('POST', '/api/orders', {
+        items: items.map(i => ({id: i.id, blouse: i.blouse, qty: i.qty})), coupon, express: express(), pay: method,
+        contact: {name: v('name'), email: v('email'), phone: v('phone')}, address: {addr: v('addr'), city: v('city'), pin: v('pin'), state: v('state')}});
+      let result = created;
+      if (method !== 'Cash on delivery') {
+        const proof = await NKPay.pay({payment: created.payment, amount: created.order.total, method, name: v('name'), email: v('email'), phone: v('phone'), orderRef: created.order.id});
+        btn.textContent = 'Confirming payment…';
+        result = await NK.api('POST', '/api/orders/pay', {orderId: created.order.id, token: created.order.token, ...proof});
+      }
+      confirmOrder(result.order, result.email);
+    } catch (err) {
+      // the bag is only emptied once the order is confirmed, so the shopper can simply try again
+      btn.disabled = false; syncButton();
+      msg.textContent = err && err.cancelled ? 'Payment cancelled. Your bag is saved, so you can try again whenever you are ready.' : err.message;
+    }
+  });
+
+  function confirmOrder(order, mail) {
+    const {id, eta, pay, total, email} = order, first = order.name.split(' ')[0], items = order.items, payment = {id: order.paymentId || ''};
+    watch.disconnect();   // otherwise emptying the bag would swap this page for the empty-bag message
+    if (NK.account.get()) NK.orders.add(order);
+    if (document.getElementById('keepAddr')?.checked)
+      NK.profile.upsert('addresses', {label: 'Home', name: order.name, phone: order.phone, addr: order.address, city: order.city, pin: order.pin, state: order.state, isDefault: true});
+    bag.clear();
+    document.getElementById('s2').classList.remove('on'); document.getElementById('s3').classList.add('on');
+    document.getElementById('co').outerHTML = `
+      <section class="done" aria-live="polite">
+        <svg class="seal" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l5 4 6-1 2 6 6 3-2 6 2 6-6 3-2 6-6-1-5 4-5-4-6 1-2-6-6-3 2-6-2-6 6-3 2-6 6 1z"/><path d="M17 24l5 5 9-10"/></svg>
+        <h1>Thank you, ${first.replace(/[<>&"]/g, '')}</h1>
+        <p class="ord">Order ${id}</p>
+        <p>${items.reduce((s, i) => s + i.qty, 0)} ${items.length === 1 && items[0].qty === 1 ? 'sari' : 'saris'}, ${money(total)} ${pay === 'Cash on delivery' ? 'to be paid in cash on delivery' : 'paid by ' + (pay === 'UPI' ? 'UPI' : 'card')}. It will reach you by ${NK.esc(eta)}, wrapped in a cotton bundle.</p>
+        ${pay === 'Cash on delivery' ? '' : `<p class="ref">Payment reference ${NK.esc(payment.id)}${payment.id.startsWith('pay_test_') ? ' (test)' : ''}</p>`}
+        <p class="mailstate" id="mailState"></p>
+        <div class="btns"><a class="btn dark" href="shop.html">Keep browsing</a><a class="btn" href="${NK.account.get() ? 'account.html#orders' : 'login.html?next=account.html'}">See your orders</a><button class="btn" type="button" id="previewMail">View the email</button></div>
+      </section>`;
+    document.getElementById('previewMail').onclick = () => NKPay.previewReceipt(order);
+    // the server sent (or logged) the email; report what really happened, the order stands either way
+    const el = document.getElementById('mailState'), r = mail || {};
+    el.textContent = r.sent ? `Confirmation emailed to ${email}.`
+      : r.reason === 'not-configured' ? 'Order emails are not connected yet (no email key on the server), so nothing was sent. You can view the email that would go out.'
+      : `We could not send the confirmation email to ${email}. Your order is still placed; you can view it here or in your orders.`;
+    el.classList.toggle('ok', !!r.sent);
+    if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.seal path').forEach(p => { const l = p.getTotalLength(); gsap.fromTo(p, {strokeDasharray: l, strokeDashoffset: l}, {strokeDashoffset: 0, duration: 1.6, ease: 'power2.inOut'}); });
+      gsap.from('.done > :not(svg)', {y: 24, opacity: 0, duration: 1, stagger: .1, ease: 'expo.out', delay: .4});
+    }
+    scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  renderSummary(); syncButton();
+})();
+</script>
+</body>
+</html>

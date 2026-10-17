@@ -1,0 +1,7 @@
+{
+  "name": "neelkora",
+  "private": true,
+  "description": "Neelkora site and API server (no npm dependencies)",
+  "engines": { "node": ">=24" },
+  "scripts": { "start": "node server/server.js" }
+}

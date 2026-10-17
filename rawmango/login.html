@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<title>Sign in — Neelkora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  .split{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);min-height:calc(100svh - 77px)}
+  .art{position:relative;overflow:hidden;color:var(--chalk)}
+  .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.1)}
+  .art::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(22,20,18,.75),rgba(22,20,18,0) 55%)}
+  .art blockquote{position:absolute;z-index:1;left:clamp(20px,4vw,56px);right:clamp(20px,4vw,56px);bottom:clamp(28px,6vh,56px);font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.6rem);line-height:1.15;max-width:30rem}
+  .art blockquote small{display:block;font-family:var(--sans);font-size:.95rem;margin-top:14px;opacity:.85}
+  .panel{display:flex;flex-direction:column;justify-content:center;padding:clamp(36px,7vh,72px) clamp(20px,5vw,72px)}
+  .panel-in{width:100%;max-width:420px;margin:0 auto}
+  .panel h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.4rem,4.6vw,3.8rem);line-height:1;margin-bottom:10px}
+  .panel .lead{opacity:.72;margin-bottom:28px;line-height:1.6}
+
+  /* Google first: the one-tap way in */
+  .gwrap{min-height:44px}
+  #gbtn{display:flex;justify-content:center}
+  .gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 16px;border:1px solid var(--line);background:var(--surface);color:var(--fg);
+    font:inherit;font-weight:500;font-size:1rem;cursor:pointer;transition:border-color .3s,box-shadow .3s}
+  .gbtn:hover{border-color:var(--fg);box-shadow:0 6px 18px rgba(22,20,18,.08)}
+  .gbtn svg{width:20px;height:20px;flex:none}
+  .gnote{font-size:.85rem;line-height:1.5;margin-top:10px;padding:10px 12px;background:var(--surface);border-left:2px solid var(--harda)}
+  .or{display:flex;align-items:center;gap:14px;margin:24px 0;font-size:.85rem;opacity:.6}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:var(--fg);opacity:.25}
+
+  .f{margin-bottom:14px}
+  .f label{display:block;font-size:.88rem;margin-bottom:6px}
+  .f .in{position:relative}
+  .f input{width:100%;padding:13px 14px;border:1px solid var(--line);background:var(--surface);border-radius:0;font-size:1rem}
+  .f input:focus{border-color:var(--fg);outline:none}
+  .f .show{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;cursor:pointer;font-size:.85rem;text-decoration:underline;text-underline-offset:3px;padding:6px}
+  .f .err{display:block;min-height:1.1em;color:var(--err);font-size:.82rem;margin-top:4px}
+  .f .hint{font-size:.82rem;opacity:.6;margin-top:4px}
+  .f.bad input{border-color:var(--err)}
+  .f[hidden]{display:none}
+  .row-end{display:flex;justify-content:flex-end;margin:-6px 0 16px}
+  .row-end[hidden]{display:none}
+  .switch-line{text-align:center;margin-top:18px;font-size:.95rem}
+  .switch-line button{background:none;border:0;padding:4px 2px;font:inherit;font-weight:500;color:var(--madder);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  :root[data-theme="dark"] .switch-line button{color:var(--accent)}
+  .guest{display:block;text-align:center;margin-top:10px;font-size:.88rem;opacity:.7;text-decoration:underline;text-underline-offset:3px}
+  .demo{font-size:.78rem;opacity:.55;margin-top:22px;line-height:1.5;text-align:center}
+
+  /* phone or email */
+  .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);padding:3px;margin-bottom:20px}
+  .seg button{background:none;border:0;padding:10px;font:inherit;font-size:.95rem;cursor:pointer;color:inherit;opacity:.65;transition:background .3s,opacity .3s}
+  .seg button[aria-selected="true"]{background:var(--fg);color:var(--bg);opacity:1}
+  .phone-in{display:flex}
+  .phone-in .cc{padding:0 8px 0 12px;border:1px solid var(--line);border-right:0;background:var(--surface);color:inherit;font:inherit;font-weight:500;border-radius:0;cursor:pointer;max-width:118px}
+  .phone-in .cc:disabled{cursor:default;opacity:1;-webkit-appearance:none;appearance:none;padding-right:12px}
+  .phone-in input{flex:1;min-width:0;letter-spacing:.04em}
+  .sent{line-height:1.6;margin-bottom:14px}
+  .sent .link{font-size:.9rem;margin-left:4px}
+  .otp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+  .otp input{width:100%;aspect-ratio:1/1.15;text-align:center;font-family:var(--serif);font-size:1.6rem;border:1px solid var(--line);background:var(--surface);border-radius:0;padding:0;caret-color:var(--madder)}
+  .otp input:focus{border-color:var(--fg);outline:none;box-shadow:0 0 0 1px var(--fg)}
+  .otp.bad input{border-color:var(--err)}
+  .otp.ok input{border-color:var(--deep)}
+  #otpErr{display:block;min-height:1.2em;color:var(--err);font-size:.82rem;margin:6px 0 10px}
+  .testcode{font-size:.88rem;line-height:1.5;padding:10px 12px;background:var(--surface);border-left:2px solid var(--harda);margin:-2px 0 14px}
+  .testcode b{font-family:var(--serif);font-size:1.15rem;letter-spacing:.12em}
+  .resend{text-align:center;margin-top:12px}
+  .resend .link:disabled{opacity:.45;cursor:default;text-decoration:none}
+  [hidden]{display:none !important}
+  @media (max-width:860px){ .split{grid-template-columns:1fr} .art{height:30svh} }
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a href="shop.html">Shop</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main class="split">
+  <div class="art">
+    <img src="img/lookbook/lookbook-2-1200.webp" srcset="img/lookbook/lookbook-2-700.webp 700w, img/lookbook/lookbook-2-1200.webp 1200w" sizes="(max-width:860px) 100vw, 55vw" decoding="async" alt="">
+    <blockquote>Keep your saved saris, addresses and orders in one place.<small>One account, ready in a few seconds.</small></blockquote>
+  </div>
+
+  <section class="panel">
+    <div class="panel-in">
+      <h1 id="title">Welcome back</h1>
+      <p class="lead" id="lead">Sign in to see your orders and saved details.</p>
+
+      <div class="gwrap">
+        <div id="gbtn"></div>
+        <button type="button" class="gbtn" id="gfallback">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.3 0-11.6-4.2-13.4-10l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+        <p class="gnote" id="gnote" role="status" hidden></p>
+      </div>
+
+      <div class="or">or</div>
+
+      <div class="seg" role="tablist" aria-label="Sign in with">
+        <button type="button" role="tab" data-method="phone" aria-selected="true" aria-controls="pform">Mobile number</button>
+        <button type="button" role="tab" data-method="email" aria-selected="false" aria-controls="form">Email</button>
+      </div>
+
+      <!-- phone: number, then a one-time code -->
+      <form id="pform" novalidate role="tabpanel">
+        <div id="pstep1">
+          <div class="f"><label for="phone">Mobile number</label>
+            <div class="in phone-in">
+              <!-- countries other than India appear only when Firebase sends the codes (it texts any country) -->
+              <select class="cc" id="cc" aria-label="Country code" autocomplete="tel-country-code">
+                <option value="91" selected>🇮🇳 +91</option><option value="1">🇺🇸 +1</option><option value="44">🇬🇧 +44</option><option value="971">🇦🇪 +971</option>
+                <option value="65">🇸🇬 +65</option><option value="61">🇦🇺 +61</option><option value="966">🇸🇦 +966</option><option value="974">🇶🇦 +974</option>
+                <option value="60">🇲🇾 +60</option><option value="977">🇳🇵 +977</option><option value="880">🇧🇩 +880</option><option value="94">🇱🇰 +94</option>
+              </select>
+              <input id="phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="98765 43210" aria-describedby="phoneNote"></div>
+            <span class="err"></span><p class="hint" id="phoneNote">We will text you a 6-digit code. No password needed.</p></div>
+          <button class="btn dark wide" type="submit" id="sendOtp">Send code</button>
+        </div>
+        <div id="pstep2" hidden>
+          <p class="sent">Enter the 6-digit code sent to <b id="sentTo"></b><button type="button" class="link" id="changeNum">Change</button></p>
+          <p class="testcode" id="testCode" hidden></p>
+          <div class="otp" id="otp" role="group" aria-label="6-digit code">
+            <input inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="Digit 1"><input inputmode="numeric" maxlength="1" aria-label="Digit 2"><input inputmode="numeric" maxlength="1" aria-label="Digit 3"><input inputmode="numeric" maxlength="1" aria-label="Digit 4"><input inputmode="numeric" maxlength="1" aria-label="Digit 5"><input inputmode="numeric" maxlength="1" aria-label="Digit 6">
+          </div>
+          <span id="otpErr" role="alert"></span>
+          <div class="f" id="f-pname" hidden><label for="pname">Your name</label><div class="in"><input id="pname" autocomplete="name"></div><span class="err"></span></div>
+          <button class="btn dark wide" type="submit" id="verifyOtp">Verify and continue</button>
+          <p class="resend"><button type="button" class="link" id="resend" disabled>Resend code in 30s</button></p>
+        </div>
+        <div id="recaptcha-container"></div>
+      </form>
+
+      <form id="form" novalidate role="tabpanel" hidden>
+        <div class="f" id="f-name" hidden><label for="name">Your name</label><div class="in"><input id="name" autocomplete="name"></div><span class="err"></span></div>
+        <div class="f"><label for="email">Email</label><div class="in"><input id="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required></div><span class="err"></span></div>
+        <div class="f"><label for="pw">Password</label><div class="in"><input id="pw" type="password" autocomplete="current-password" required><button type="button" class="show" aria-controls="pw">Show</button></div>
+          <p class="hint" id="pwHint" hidden>At least 8 characters.</p><span class="err"></span></div>
+        <div class="row-end" id="forgotRow"><a class="link" href="#" id="forgot">Forgot password?</a></div>
+        <button class="btn dark wide" type="submit" id="submit">Sign in</button>
+      </form>
+
+      <p class="switch-line" id="switchLine"></p>
+      <a class="guest" id="guest" href="shop.html">Continue as a guest</a>
+      <p class="demo">Passwords are stored only as a secure hash. We never share your number or email.</p>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script src="config.js"></script>
+<script>
+(() => {
+  const {account} = NK;
+  const $ = id => document.getElementById(id), form = $('form');
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next'), dest = next && /^[a-z]+\.html$/.test(next) ? next : 'account.html';   // only our own pages
+  if (next === 'checkout.html') { $('guest').href = 'checkout.html'; $('guest').textContent = 'Check out as a guest'; }
+  if (account.get()) return location.replace('account.html' + location.hash);   // already signed in
+  let mode = 'in';
+
+  // finish: the server has signed us in (session cookie set); keep its account copy, remember how they signed in, then go
+  const finish = (me, remember) => {
+    try { localStorage.setItem(remember.startsWith('+') ? 'nk-last-phone' : 'nk-last-email', remember); } catch {}
+    NK.applyMe(me);
+    NK.silk('cover').then(() => { try { sessionStorage.setItem('nk-silk', '1'); } catch {} location.href = dest; });
+  };
+
+  const setMode = m => {
+    mode = m;
+    $('title').textContent = m === 'in' ? 'Welcome back' : 'Create your account';
+    $('lead').textContent = m === 'in' ? 'Sign in to see your orders and saved details.' : 'Save saris, check out faster and track every order.';
+    $('f-name').hidden = m === 'in'; $('pwHint').hidden = m === 'in'; $('forgotRow').hidden = m === 'up';
+    $('pw').autocomplete = m === 'in' ? 'current-password' : 'new-password';
+    $('submit').textContent = m === 'in' ? 'Sign in' : 'Create account';
+    $('switchLine').innerHTML = m === 'in' ? 'New to Neelkora? <button type="button" data-to="up">Create an account</button>'
+                                           : 'Already have an account? <button type="button" data-to="in">Sign in</button>';
+    form.querySelectorAll('.f').forEach(f => { f.classList.remove('bad'); f.querySelector('.err').textContent = ''; });
+    history.replaceState(null, '', '?' + new URLSearchParams({...(next ? {next} : {}), ...(m === 'up' ? {mode: 'up'} : {})}));
+    if (method === 'email') (m === 'up' ? $('name') : ($('email').value ? $('pw') : $('email'))).focus({preventScroll: true});
+  };
+
+  // ---------- phone or email ----------
+  let method = 'phone';
+  const setMethod = m => {
+    method = m;
+    document.querySelectorAll('.seg [data-method]').forEach(b => b.setAttribute('aria-selected', b.dataset.method === m));
+    $('pform').hidden = m !== 'phone'; $('form').hidden = m !== 'email'; $('switchLine').hidden = m !== 'email';
+    if (m === 'phone') { $('title').textContent = 'Sign in or join'; $('lead').textContent = 'Use your mobile number. We will text you a code, no password needed.'; }
+    else setMode(mode);
+    try { localStorage.setItem('nk-login-method', m); } catch {}
+    (m === 'phone' ? ($('pstep2').hidden ? $('phone') : boxes[0]) : null)?.focus({preventScroll: true});
+  };
+  document.querySelector('.seg').addEventListener('click', e => { const b = e.target.closest('[data-method]'); if (b) setMethod(b.dataset.method); });
+
+  // ---------- phone OTP ----------
+  // With Firebase keys on the server, Firebase texts the code (any country) and our server confirms the sign-in with Google.
+  // Without them, the server makes and texts the code itself (Indian numbers).
+  const FIREBASE = !!(window.NK_CONFIG || {}).firebase;
+  const boxes = [...document.querySelectorAll('#otp input')];
+  let timer = 0, confirmation = null, fbToken = '', fb = null;
+  const cc = $('cc');
+  if (!FIREBASE) { [...cc.options].forEach(o => { if (o.value !== '91') o.remove(); }); cc.disabled = true; }
+  const phoneField = $('phone').closest('.f');
+  const phoneErr = t => { phoneField.classList.toggle('bad', !!t); phoneField.querySelector('.err').textContent = t; };
+  const india = () => cc.value === '91';
+  const e164 = () => '+' + cc.value + $('phone').value;
+  const phoneOk = () => {
+    const v = $('phone').value, ok = india() ? /^[6-9]\d{9}$/.test(v) : /^\d{6,14}$/.test(v) && e164().length <= 16;
+    phoneErr(ok ? '' : india() ? 'Enter a 10-digit mobile number starting with 6, 7, 8 or 9.' : 'Enter your mobile number without the country code.');
+    return ok; };
+  const fitInput = () => { $('phone').maxLength = india() ? 10 : 14; $('phone').placeholder = india() ? '98765 43210' : 'Mobile number'; };
+  cc.addEventListener('change', () => { fitInput(); if (phoneField.classList.contains('bad')) phoneOk(); $('phone').focus(); });
+  $('phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, india() ? 10 : 14); if (phoneField.classList.contains('bad')) phoneOk(); });
+
+  const startTimer = () => {
+    let left = 30; const b = $('resend'); b.disabled = true; clearInterval(timer);
+    const tick = () => { b.textContent = left > 0 ? `Resend code in ${left}s` : 'Resend code'; b.disabled = left > 0; if (left-- <= 0) clearInterval(timer); };
+    tick(); timer = setInterval(tick, 1000);
+  };
+  const otpError = t => { $('otpErr').textContent = t; $('otp').classList.toggle('bad', !!t); };
+  const clearBoxes = () => { boxes.forEach(b => b.value = ''); boxes[0].focus(); };
+  const showCodeStep = () => {
+    otpError(''); fbToken = '';
+    const n = $('phone').value;
+    $('sentTo').textContent = india() ? `+91 ${n.slice(0, 5)} ${n.slice(5)}` : `+${cc.value} ${n}`;
+    $('pstep1').hidden = true; $('pstep2').hidden = false;
+    clearBoxes(); startTimer();
+  };
+
+  async function sendCode() {
+    if (!phoneOk()) return $('phone').focus();
+    const btn = $('sendOtp');
+    btn.disabled = true; btn.textContent = 'Sending code…';
+    try {
+      if (FIREBASE) {
+        fb = fb || await import('./firebase.js');
+        confirmation = await fb.sendCode(e164());
+        $('testCode').hidden = true;
+        $('f-pname').hidden = true;                     // Firebase cannot say if the number is new; the server asks after the code if needed
+      } else {
+        const r = await NK.api('POST', '/api/auth/otp/send', {phone: $('phone').value});
+        // only a development server with no SMS provider returns the code; a live server never does
+        $('testCode').hidden = !r.devCode;
+        if (r.devCode) $('testCode').innerHTML = `Development server: no SMS provider is set up, so here is the code: <b>${r.devCode}</b>`;
+        $('f-pname').hidden = !r.isNew;                 // a new number gives its name once
+      }
+      showCodeStep();
+    } catch (err) { phoneErr(err.message); }
+    finally { btn.disabled = false; btn.textContent = 'Send code'; }
+  }
+
+  async function verifyCode() {
+    const code = boxes.map(b => b.value).join('');
+    if (!fbToken && !/^\d{6}$/.test(code)) return otpError('Enter all 6 digits of the code.');
+    const nameBox = $('pname'), needName = !$('f-pname').hidden;
+    if (needName && nameBox.value.trim().length < 2) { nameBox.closest('.f').classList.add('bad'); nameBox.closest('.f').querySelector('.err').textContent = 'Enter your name.'; return nameBox.focus(); }
+    const btn = $('verifyOtp'); btn.disabled = true; btn.textContent = 'Checking…';
+    try {
+      let me;
+      if (FIREBASE) {
+        fbToken = fbToken || await fb.confirmCode(confirmation, code);   // a code works once: keep the token if we still need the name
+        me = await NK.api('POST', '/api/auth/firebase', {idToken: fbToken, name: nameBox.value.trim()});
+      } else {
+        me = await NK.api('POST', '/api/auth/otp/verify', {phone: $('phone').value, code, name: nameBox.value.trim()});
+      }
+      $('otp').classList.add('ok'); otpError(''); btn.textContent = 'Signed in';
+      finish(me, e164());
+    } catch (err) {
+      btn.disabled = false; btn.textContent = 'Verify and continue';
+      if (err.code === 'name_required') {               // first time for this number: the code is fine, we only need a name
+        $('otp').classList.add('ok'); otpError('');
+        $('f-pname').hidden = false; nameBox.closest('.f').querySelector('.err').textContent = 'Welcome! Tell us your name to finish.';
+        return nameBox.focus();
+      }
+      otpError(err.message);
+      if (err.code === 'wrong_code' || err.code === 'auth/invalid-verification-code') clearBoxes();
+    }
+  }
+
+  $('pform').addEventListener('submit', e => { e.preventDefault(); $('pstep2').hidden ? sendCode() : verifyCode(); });
+  $('changeNum').onclick = () => { clearInterval(timer); $('pstep2').hidden = true; $('pstep1').hidden = false; $('phone').focus(); };
+  $('resend').onclick = () => { $('pstep2').hidden = true; $('pstep1').hidden = false; sendCode(); };
+  // code boxes: type to move on, backspace to go back, paste or SMS autofill fills all six, the sixth digit submits
+  const spread = (from, digits) => { digits.split('').forEach((d, k) => { if (boxes[from + k]) boxes[from + k].value = d; });
+    const nextEmpty = boxes.find(b => !b.value); (nextEmpty || boxes[5]).focus();
+    if (boxes.every(b => b.value) && $('f-pname').hidden) verifyCode(); };
+  boxes.forEach((b, i) => {
+    b.addEventListener('input', () => { const d = b.value.replace(/\D/g, ''); b.value = '';
+      if (d) spread(i, d.slice(0, 6 - i)); if ($('otpErr').textContent) otpError(''); });
+    b.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !b.value && i) { boxes[i - 1].value = ''; boxes[i - 1].focus(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && i) boxes[i - 1].focus();
+      if (e.key === 'ArrowRight' && i < 5) boxes[i + 1].focus();
+    });
+    b.addEventListener('paste', e => { const d = (e.clipboardData.getData('text') || '').replace(/\D/g, ''); if (d) { e.preventDefault(); spread(0, d.slice(0, 6)); } });
+    b.addEventListener('focus', () => b.select());
+  });
+  $('switchLine').addEventListener('click', e => { const b = e.target.closest('[data-to]'); if (b) setMode(b.dataset.to); });
+
+  document.querySelector('.show').onclick = e => { const pw = $('pw'), show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password'; e.target.textContent = show ? 'Hide' : 'Show'; };
+  // shortcut: no reset email yet; add a /api/auth/reset endpoint that emails a one-time link when mail is live
+  $('forgot').onclick = e => { e.preventDefault(); const em = $('email'), err = em.closest('.f').querySelector('.err');
+    err.textContent = 'Password reset by email is coming soon. For now, sign in with your mobile number instead.'; };
+
+  // ---------- email and password ----------
+  const msg = {name: 'Enter your name.', email: 'Enter an email like name@example.com.', pw: 'Use at least 8 characters.'};
+  const check = el => {
+    const v = el.value.trim();
+    const ok = el.id === 'email' ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) : el.id === 'pw' ? el.value.length >= 8 : v.length >= 2;
+    el.closest('.f').classList.toggle('bad', !ok); el.closest('.f').querySelector('.err').textContent = ok ? '' : msg[el.id];
+    el.setAttribute('aria-invalid', !ok); return ok; };
+  // errors clear as soon as the field is fixed, not only on the next submit
+  form.addEventListener('input', e => { if (e.target.closest('.f.bad')) check(e.target); });
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const bad = [...(mode === 'up' ? [$('name')] : []), $('email'), $('pw')].filter(el => !check(el));
+    if (bad.length) return bad[0].focus();
+    const email = $('email').value.trim().toLowerCase(), btn = $('submit');
+    btn.disabled = true; btn.textContent = mode === 'in' ? 'Signing in…' : 'Creating your account…';
+    try {
+      const me = mode === 'up'
+        ? await NK.api('POST', '/api/auth/signup', {name: $('name').value.trim(), email, password: $('pw').value})
+        : await NK.api('POST', '/api/auth/login', {email, password: $('pw').value});
+      $('pw').value = '';
+      finish(me, email);
+    } catch (err) {
+      btn.disabled = false; btn.textContent = mode === 'in' ? 'Sign in' : 'Create account';
+      // show the server's message on the field it is about
+      const field = /email/.test(err.code) ? $('email') : /name/.test(err.code) ? $('name') : $('pw');
+      field.closest('.f').classList.add('bad'); field.closest('.f').querySelector('.err').textContent = err.message; field.focus();
+    }
+  });
+
+  // ---------- Google (the server checks the token with Google before trusting it) ----------
+  const GID = (window.NK_CONFIG || {}).googleClientId;
+  const note = t => { $('gnote').textContent = t; $('gnote').hidden = false; };
+  const startGoogle = () => {
+    google.accounts.id.initialize({
+      client_id: GID, ux_mode: 'popup', context: mode === 'up' ? 'signup' : 'signin',
+      callback: async r => {
+        try { const me = await NK.api('POST', '/api/auth/google', {credential: r.credential}); finish(me, me.user.email); }
+        catch (err) { note(err.message); }
+      },
+    });
+    google.accounts.id.renderButton($('gbtn'), {
+      type: 'standard', size: 'large', text: 'continue_with', shape: 'rectangular', logo_alignment: 'center',
+      theme: document.documentElement.dataset.theme === 'dark' ? 'filled_black' : 'outline',
+      width: Math.min(400, $('gbtn').getBoundingClientRect().width || 360),
+    });
+    $('gfallback').hidden = true;
+  };
+  if (GID) {
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+    s.onload = startGoogle;
+    s.onerror = () => note('Google sign-in could not load. Check your connection, or use your phone or email below.');
+    document.head.append(s);
+    $('gfallback').onclick = () => note('Google sign-in is still loading. Try again in a moment.');
+  } else {
+    $('gfallback').onclick = () => note('Google sign-in is not available right now. Please use your phone or email below.');
+  }
+  // ---------- start ----------
+  try {
+    const last = localStorage.getItem('nk-last-email'); if (last) $('email').value = last;
+    const lastPhone = localStorage.getItem('nk-last-phone'); const known = lastPhone && [...$('cc').options].find(o => lastPhone.startsWith('+' + o.value));
+    if (known) { $('cc').value = known.value; $('phone').value = lastPhone.slice(known.value.length + 1); fitInput(); }
+  } catch {}
+  setMode(params.get('mode') === 'up' ? 'up' : 'in');
+  let savedMethod = 'phone'; try { savedMethod = localStorage.getItem('nk-login-method') || 'phone'; } catch {}
+  setMethod(params.get('mode') === 'up' && savedMethod !== 'phone' ? 'email' : savedMethod);
+  if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    gsap.to('.art img', {scale: 1, duration: 2.6, ease: 'expo.out'});
+    gsap.from('.art blockquote', {y: 40, opacity: 0, duration: 1.4, ease: 'expo.out', delay: .3});
+    gsap.from('.panel-in > *', {y: 20, opacity: 0, duration: .9, stagger: .05, ease: 'expo.out', delay: .15});
+  }
+})();
+</script>
+</body>
+</html>

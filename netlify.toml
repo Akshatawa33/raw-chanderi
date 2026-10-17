@@ -1,0 +1,45 @@
+# Netlify: the site (rawmango/) is static. Accounts, orders and payments need the Node server (server/),
+# which Netlify cannot run, so host it on Render, Railway, Fly.io or a VPS and point the two proxies below at it.
+# The browser only ever talks to your Netlify address, so sign-in cookies keep working.
+
+[build]
+  publish = "rawmango"
+
+# 1) If Render gave your server a different address, replace neelkora-api.onrender.com below
+# 2) On that server set ALLOWED_ORIGINS=https://your-site.netlify.app (and your custom domain) and TRUST_PROXY=1
+[[redirects]]
+  from = "/api/*"
+  to = "https://neelkora-api.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# the server writes the public keys (Razorpay key id, Google client id) into /config.js
+[[redirects]]
+  from = "/config.js"
+  to = "https://neelkora-api.onrender.com/config.js"
+  status = 200
+  force = true
+
+# old or mistyped links land on the branded 404 page (Netlify serves rawmango/404.html automatically)
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# pages, scripts and styles are re-checked on every visit so an update shows at once
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "no-cache"

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<title>Wishlist — Neelkora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  .whead{padding-top:clamp(48px,9vh,96px);padding-bottom:40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  .whead h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.8rem,8vw,7rem);line-height:.92;letter-spacing:-.015em}
+  .whead p{max-width:24rem;line-height:1.6;opacity:.75}
+  .wgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(28px,4vw,48px) clamp(14px,2vw,28px);padding-top:40px}
+  @media (max-width:1000px){ .wgrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+  @media (max-width:640px){ .wgrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .wcard .move{margin-top:12px;width:100%;padding:12px}
+  .wempty{grid-column:1/-1;text-align:center;padding:80px 0}
+  .wempty svg{width:56px;height:56px;fill:none;stroke:var(--madder);stroke-width:1.2;margin:0 auto 20px}
+  .wempty h2{font-family:var(--serif);font-weight:400;font-size:2rem;margin-bottom:10px}
+  .wempty p{opacity:.7;margin-bottom:28px}
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a href="shop.html">Shop</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li class="hide-sm"><a href="login.html" data-account>Sign in</a></li><li><a class="on" href="wishlist.html">Wishlist (<span data-wish-count>0</span>)</a></li><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main class="wrap">
+  <section class="whead">
+    <h1>Your wishlist</h1>
+    <p id="wsub" aria-live="polite"></p>
+  </section>
+  <section class="wgrid" id="wgrid" aria-label="Saved saris"></section>
+</main>
+
+<footer class="sfoot"><span class="logo">Neelkora</span><span>Saved in this browser.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script>
+(() => {
+  const {get, money, wish, bag, openBag, flyToBag, account} = NK;
+  const grid = document.getElementById('wgrid'), sub = document.getElementById('wsub');
+  const draw = () => {
+    const items = wish.ids().map(get).filter(Boolean), user = account.get();
+    sub.textContent = items.length
+      ? `${items.length} ${items.length === 1 ? 'sari' : 'saris'} saved${user ? ' for ' + user.name.split(' ')[0] : ''}. Move one to your bag when you are ready.`
+      : '';
+    grid.innerHTML = items.length ? items.map(p => `
+      <div class="wcard">
+        <a class="card" href="product.html?id=${p.id}">
+          <div class="ph">${NK.heart(p.id)}<img src="${p.img}" alt="${p.name}, ${p.colour} ${p.weave} sari"><img src="${p.alt}" alt=""></div>
+          <h3>${p.name}<span>${money(p.price)}</span></h3><p>${p.weave}, ${p.colour}</p>
+        </a>
+        <button class="btn move" data-move="${p.id}">Move to bag</button>
+      </div>`).join('')
+      : `<div class="wempty">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-9.2-8.6C1.2 8.2 3 4.8 6.4 4.5c2.1-.2 3.9.9 5.6 3 1.7-2.1 3.5-3.2 5.6-3 3.4.3 5.2 3.7 3.6 6.9C19 15.6 12 20 12 20z"/></svg>
+          <h2>Nothing saved yet</h2><p>Tap the heart on any sari to keep it here.</p><a class="btn dark" href="shop.html">Browse saris</a></div>`;
+    NK.render();
+    if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+      gsap.from('.wcard, .wempty', {y: 40, opacity: 0, duration: 1, stagger: .07, ease: 'expo.out'});
+  };
+  grid.addEventListener('click', e => {
+    const m = e.target.closest('[data-move]');
+    if (m) {
+      const card = m.closest('.wcard');
+      bag.add(m.dataset.move); wish.toggle(m.dataset.move);
+      flyToBag(card.querySelector('img'), () => { openBag(); draw(); });
+    } else if (e.target.closest('[data-wish]')) {
+      // unsaving here removes the card after the heart settles
+      setTimeout(draw, 350);
+    }
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<title>Sari — Neelkora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  .pdp{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(24px,5vw,80px);padding-top:clamp(24px,4vh,48px)}
+  .gallery{display:grid;gap:12px}
+  .gallery .fr{overflow:hidden;aspect-ratio:3/4;background:var(--ph)}
+  .gallery img{width:100%;height:112%;object-fit:cover;cursor:zoom-in}
+  .info{position:sticky;top:96px;align-self:start;padding-bottom:40px}
+  .crumbs{font-size:.8rem;opacity:.6;margin-bottom:24px}
+  .crumbs a:hover{text-decoration:underline}
+  .info h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.8rem,5vw,4.6rem);line-height:.95}
+  .info .sub{margin-top:10px;opacity:.7}
+  .price{font-size:1.4rem;margin:22px 0 4px}
+  .info .about{line-height:1.7;margin:24px 0;max-width:30rem}
+  fieldset{border:0;margin:0 0 22px}
+  legend{font-size:.8rem;letter-spacing:.01em;margin-bottom:10px}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt input{position:absolute;opacity:0;pointer-events:none}
+  .opt span{display:inline-block;padding:10px 16px;border:1px solid var(--line);cursor:pointer;font-size:.88rem;transition:background .3s,color .3s}
+  .opt input:checked+span{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+  .opt input:focus-visible+span{outline:1px solid var(--madder);outline-offset:3px}
+  .sizes[hidden]{display:none}
+  .actions{display:flex;gap:12px;align-items:stretch}
+  .actions .qty{margin:0}
+  .actions .qty button{height:100%;width:40px}
+  .details{margin-top:32px;border-top:1px solid var(--line)}
+  details{border-bottom:1px solid var(--line);padding:16px 0}
+  summary{cursor:pointer;font-family:var(--serif);font-size:1.15rem;list-style:none;display:flex;justify-content:space-between}
+  summary::after{content:"+"} details[open] summary::after{content:"−"}
+  details p{margin-top:12px;line-height:1.7;opacity:.8;font-size:.92rem}
+  .more{padding-top:clamp(80px,14vh,140px)}
+  .more h2{font-family:var(--serif);font-weight:400;font-size:clamp(2rem,4vw,3.4rem);margin-bottom:32px}
+  .more .row4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(14px,2vw,28px)}
+  .dots,.sticky-buy{display:none}
+  @media (max-width:860px){
+    .pdp{grid-template-columns:1fr} .info{position:static} .more .row4{grid-template-columns:1fr 1fr}
+    /* phones: full-width photos you swipe through, with the next one peeking in */
+    .gallery{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:86%;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;
+      margin:0 calc(-1 * clamp(16px,5vw,72px));padding:0 clamp(16px,5vw,72px);scroll-padding:0 clamp(16px,5vw,72px)}
+    .gallery::-webkit-scrollbar{display:none}
+    .gallery .fr{scroll-snap-align:start}
+    .gallery img{cursor:auto}
+    .dots{display:flex;justify-content:center;gap:8px;margin-top:12px}
+    .dots span{width:6px;height:6px;border-radius:50%;background:var(--fg);opacity:.25;transition:opacity .3s,transform .3s}
+    .dots span.on{opacity:.9;transform:scale(1.3)}
+    /* the buy button stays in reach once the main one scrolls away */
+    .sticky-buy{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:45;gap:14px;align-items:center;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+      background:var(--nav);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);transform:translateY(110%);transition:transform .45s var(--ease)}
+    .sticky-buy.show{transform:none}
+    .sticky-buy b{display:block;font-weight:500;font-size:1.05rem}
+    .sticky-buy small{display:block;opacity:.6;font-size:.82rem}
+    .sticky-buy .btn{flex:1;max-width:220px;margin-left:auto}
+    body:has(.sticky-buy.show) .totop{bottom:calc(84px + env(safe-area-inset-bottom))}
+  }
+  .missing{padding:120px 0;text-align:center}
+  .missing h1{font-family:var(--serif);font-weight:400;font-size:2.4rem;margin-bottom:20px}
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a href="shop.html">Shop</a></li><li class="hide-sm"><a href="index.html#crafts">Craft</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li class="hide-sm"><a href="login.html" data-account>Sign in</a></li><li><a href="wishlist.html">Wishlist (<span data-wish-count>0</span>)</a></li><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<footer class="sfoot"><span class="logo">Neelkora</span><span>Prices include GST. Free standard shipping in India.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script>
+(() => {
+  const {products, occasions, get, money, bag, openBag, flyToBag, STITCH} = NK;
+  const p = get(new URLSearchParams(location.search).get('id'));
+  const main = document.getElementById('main');
+  if (!p) { main.innerHTML = `<div class="missing"><h1>We could not find that sari.</h1><a class="btn" href="shop.html">See all saris</a></div>`; return; }
+  document.title = `${p.name} ${p.weave} sari — Neelkora`;
+
+  // always four suggestions: same weave or occasion first, then the rest of the collection fills the row
+  const others = products.filter(x => x.id !== p.id), close = x => x.weave === p.weave || x.occasion === p.occasion;
+  const related = [...others.filter(close), ...others.filter(x => !close(x))].slice(0, 4);
+  main.innerHTML = `
+    <div class="pdp">
+      <div class="gallery">
+        <div class="fr"><img src="${p.img}" srcset="${p.img} 700w, ${p.img.replace('-700.', '-1200.')} 1200w" sizes="(max-width:860px) 86vw, 55vw" fetchpriority="high" alt="${p.name}, ${p.colour} ${p.weave} sari, front"></div>
+        <div class="fr"><img src="${p.alt}" srcset="${p.alt} 700w, ${p.alt.replace('-700.', '-1200.')} 1200w" sizes="(max-width:860px) 86vw, 55vw" decoding="async" loading="lazy" alt="${p.name} sari, the pallu held open"></div>
+        <div class="fr"><img src="${p.back}" srcset="${p.back} 700w, ${p.back.replace('-700.', '-1200.')} 1200w" sizes="(max-width:860px) 86vw, 55vw" decoding="async" loading="lazy" alt="${p.name} sari, back of the drape"></div>
+      </div>
+      <div class="dots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
+      <div class="info">
+        <p class="crumbs"><a href="shop.html">Saris</a> / <a href="shop.html?weave=${p.weave}">${p.weave}</a></p>
+        <h1>${p.name}</h1>
+        <p class="sub">${p.weave} sari in ${p.colour.toLowerCase()}, for ${occasions[p.occasion].toLowerCase()}</p>
+        <p class="price" id="price">${money(p.price)}</p>
+        <p class="note">Includes GST. Fall and pico done free.</p>
+        <p class="about">${p.about}</p>
+        <form id="buy">
+          <fieldset>
+            <legend>Blouse</legend>
+            <div class="opts">
+              <label class="opt"><input type="radio" name="blouse" value="unstitched" checked><span>Unstitched piece</span></label>
+              <label class="opt"><input type="radio" name="blouse" value="stitched"><span>Stitched, +${money(STITCH)}</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="sizes" id="sizes" hidden>
+            <legend>Blouse size</legend>
+            <div class="opts">${['XS', 'S', 'M', 'L', 'XL'].map((s, i) => `<label class="opt"><input type="radio" name="size" value="${s}" ${i === 2 ? 'checked' : ''}><span>${s}</span></label>`).join('')}</div>
+          </fieldset>
+          <div class="actions">
+            <div class="qty" role="group" aria-label="Quantity"><button type="button" data-d="-1" aria-label="One fewer">−</button><span id="qty">1</span><button type="button" data-d="1" aria-label="One more">+</button></div>
+            <button class="btn dark wide" type="submit" id="addBtn">Add to bag</button>
+            ${NK.heart(p.id).replace('class="heart"', 'class="heart inline"')}
+          </div>
+        </form>
+        <div class="details">
+          <details open><summary>The weave</summary><p>Woven on a pit loom by a single weaver over two to four weeks. Small irregularities in the weave are the mark of the hand, not flaws.</p></details>
+          <details><summary>Size and care</summary><p>5.5 metres of sari with a 0.8 metre blouse piece. Dry clean only for the first three washes; store folded in muslin, away from direct light.</p></details>
+          <details><summary>Delivery and returns</summary><p>Ships in 3 to 5 days across India, free. Express delivery in 1 to 2 days for ₹500. Unworn saris can be returned within 7 days; stitched blouses are made for you and cannot be returned.</p></details>
+        </div>
+      </div>
+    </div>
+    <section class="more">
+      <h2>Wear it with</h2>
+      <div class="row4">${related.map(r => `<a class="card" href="product.html?id=${r.id}"><div class="ph"><img src="${r.img}" alt="${r.name} sari" loading="lazy"><img src="${r.alt}" alt="" loading="lazy"></div><h3>${r.name}<span>${money(r.price)}</span></h3><p>${r.weave}, ${r.colour}</p></a>`).join('')}</div>
+    </section>
+    <div class="sticky-buy" id="stickyBuy" inert><div><b id="sbPrice">${money(p.price)}</b><small>${p.name}</small></div><button class="btn dark" type="button" id="sbAdd">Add to bag</button></div>`;
+
+  const form = document.getElementById('buy'), sizes = document.getElementById('sizes'), qtyEl = document.getElementById('qty');
+  let qty = 1;
+  const update = () => {
+    const stitched = form.blouse.value === 'stitched';
+    sizes.hidden = !stitched;
+    document.getElementById('price').textContent = document.getElementById('sbPrice').textContent = money((p.price + (stitched ? STITCH : 0)) * qty);
+  };
+  // phones: the bottom bar appears whenever the main Add to bag button is off screen, and does exactly the same thing
+  const bar = document.getElementById('stickyBuy');
+  new IntersectionObserver(([e]) => { bar.classList.toggle('show', !e.isIntersecting); bar.inert = e.isIntersecting; })
+    .observe(document.getElementById('addBtn'));
+  document.getElementById('sbAdd').onclick = () => form.requestSubmit();
+  // swipe gallery dots follow the photo in view
+  const gal = document.querySelector('.gallery'), dots = document.querySelectorAll('.dots span');
+  gal.addEventListener('scroll', () => { const i = Math.round(gal.scrollLeft / (gal.firstElementChild.offsetWidth || 1)); dots.forEach((d, k) => d.classList.toggle('on', k === i)); }, {passive: true});
+  NK.render();   // the heart was added after the first render
+  form.addEventListener('change', update);
+  form.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { qty = Math.max(1, Math.min(5, qty + +b.dataset.d)); qtyEl.textContent = qty; update(); });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const blouse = form.blouse.value === 'stitched' ? 'stitched-' + form.size.value : 'unstitched';
+    bag.add(p.id, blouse, qty);
+    const btn = document.getElementById('addBtn'); btn.textContent = 'Added to bag';
+    setTimeout(() => btn.textContent = 'Add to bag', 1800);
+    flyToBag(document.querySelector('.gallery img'), openBag);
+  });
+
+  if (!window.gsap || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  gsap.registerPlugin(ScrollTrigger);
+  if (window.Lenis) { const l = window.lenis = new Lenis({duration: 1.3}); l.on('scroll', ScrollTrigger.update); gsap.ticker.add(t => l.raf(t * 1000)); gsap.ticker.lagSmoothing(0); }
+  // photos unveil from a curtain and drift inside their frames as you scroll
+  // opened from a product photo: that photo has just grown into place, so only the details settle in around it
+  let opened = false; try { opened = sessionStorage.getItem('nk-open') === '1'; sessionStorage.removeItem('nk-open'); } catch {}
+  if (opened) gsap.from('.gallery .fr:not(:first-child)', {opacity: 0, y: 24, duration: .8, ease: 'expo.out', delay: .3});
+  else gsap.from('.gallery .fr', {clipPath: 'inset(100% 0 0 0)', duration: 1.4, stagger: .15, ease: 'expo.out'});
+  gsap.from('.info > *', {y: 18, opacity: 0, duration: .8, stagger: .045, ease: 'expo.out', delay: opened ? .25 : .2});
+  gsap.utils.toArray('.gallery .fr').forEach(f => gsap.fromTo(f.querySelector('img'), {yPercent: -6}, {yPercent: 0, ease: 'none',
+    scrollTrigger: {trigger: f, start: 'top bottom', end: 'bottom top', scrub: true}}));
+  gsap.from('.more .card', {y: 60, opacity: 0, duration: 1.1, stagger: .08, ease: 'expo.out', scrollTrigger: {trigger: '.more', start: 'top 80%'}});
+})();
+</script>
+</body>
+</html>

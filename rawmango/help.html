@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<title>Help and store visits — Neelkora</title>
+<meta name="description" content="Shipping, returns, store visits and how to reach Neelkora.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  .hhead{padding-top:clamp(48px,9vh,96px);padding-bottom:28px;border-bottom:1px solid var(--line)}
+  .hhead h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.6rem,7vw,5.5rem);line-height:.95}
+  .hhead p{opacity:.72;margin-top:12px;max-width:34rem;line-height:1.6}
+  .jump{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+  .jump a{padding:8px 16px;border:1px solid var(--line);border-radius:999px;font-size:.9rem}
+  .jump a:hover{background:var(--fg);color:var(--bg)}
+  .hsec{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:clamp(20px,5vw,72px);padding:clamp(48px,8vh,88px) 0;border-bottom:1px solid var(--line);scroll-margin-top:80px}
+  .hsec h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.9rem,3.5vw,2.8rem);line-height:1}
+  .hsec .body{line-height:1.75;max-width:40rem}
+  .hsec .body p+p{margin-top:14px}
+  .hsec dl{display:grid;grid-template-columns:auto 1fr;gap:10px 24px;margin-top:6px}
+  .hsec dt{font-weight:500}
+  .hsec dd{opacity:.8}
+  .cities{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .cities button{padding:8px 14px;border:1px solid var(--line);background:none;cursor:pointer;font:inherit;font-size:.9rem;color:inherit}
+  .cities button:hover,.cities button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+  .cform{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:40rem}
+  .cform .full{grid-column:1/-1}
+  .cform label{display:block;font-size:.88rem;margin-bottom:6px}
+  .cform input,.cform select,.cform textarea{width:100%;padding:12px 14px;border:1px solid var(--line);background:var(--surface);border-radius:0;font:inherit;color:inherit}
+  .cform textarea{min-height:130px;resize:vertical}
+  .cform input:focus,.cform select:focus,.cform textarea:focus{border-color:var(--fg);outline:none}
+  .cform .err{display:block;min-height:1.1em;color:var(--err);font-size:.82rem;margin-top:4px}
+  .cform .bad input,.cform .bad select,.cform .bad textarea{border-color:var(--err)}
+  .cform [hidden]{display:none}
+  .hp{position:absolute;left:-9999px}
+  .sent{grid-column:1/-1;padding:14px 16px;background:var(--surface);border-left:2px solid var(--harda);line-height:1.55}
+  .sent:empty{display:none}
+  @media (max-width:820px){ .hsec{grid-template-columns:minmax(0,1fr)} .cform{grid-template-columns:minmax(0,1fr)} }
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a href="shop.html">Shop</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main class="wrap">
+  <section class="hhead">
+    <h1>How can we help?</h1>
+    <p>Delivery, returns, store visits and a way to reach us. Most messages get a reply within one working day.</p>
+    <nav class="jump" aria-label="On this page"><a href="#shipping">Shipping</a><a href="#returns">Returns</a><a href="#visit">Store visits</a><a href="#contact">Contact</a><a href="account.html#orders">Track your order</a></nav>
+  </section>
+
+  <section class="hsec" id="shipping" aria-labelledby="h-ship">
+    <h2 id="h-ship">Shipping</h2>
+    <div class="body">
+      <dl>
+        <dt>Standard</dt><dd>Free across India, 3 to 5 working days.</dd>
+        <dt>Express</dt><dd>₹500, 1 to 2 working days in most cities.</dd>
+        <dt>Packing</dt><dd>Every sari travels folded in a reusable cotton bundle.</dd>
+      </dl>
+      <p>Once your order ships you can follow it from <a class="link" href="account.html#orders">your orders</a>. Orders placed before 2 pm usually leave the studio the same day.</p>
+    </div>
+  </section>
+
+  <section class="hsec" id="returns" aria-labelledby="h-ret">
+    <h2 id="h-ret">Returns</h2>
+    <div class="body">
+      <p>Unworn saris with their tags can be returned within 7 days of delivery. Tell us through the form below with your order number and we will arrange a pickup.</p>
+      <p>Stitched blouses are made to your size, so they cannot be returned. Refunds go back to the original payment method within 5 to 7 working days of the sari reaching us.</p>
+    </div>
+  </section>
+
+  <section class="hsec" id="visit" aria-labelledby="h-visit">
+    <h2 id="h-visit">Store visits</h2>
+    <div class="body">
+      <p>Our stores are quiet rooms to sit, drape and decide. Visits are by appointment so someone is free to help you. Pick a city and we will confirm a time.</p>
+      <div class="cities" role="group" aria-label="Choose a city">
+        <button type="button" data-city="Bengaluru">Bengaluru</button><button type="button" data-city="Chennai">Chennai</button><button type="button" data-city="Hyderabad">Hyderabad</button>
+        <button type="button" data-city="Kolkata">Kolkata</button><button type="button" data-city="Mumbai">Mumbai</button><button type="button" data-city="New Delhi">New Delhi</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="hsec" id="contact" aria-labelledby="h-contact">
+    <h2 id="h-contact">Write to us</h2>
+    <div class="body">
+      <!-- Netlify Forms: Netlify finds this form at deploy time and collects submissions (Site > Forms). -->
+      <form class="cform" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+        <input type="hidden" name="form-name" value="contact">
+        <p class="hp"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="f"><label for="c-name">Your name</label><input id="c-name" name="name" autocomplete="name" required><span class="err"></span></div>
+        <div class="f"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" required><span class="err"></span></div>
+        <div class="f"><label for="c-topic">About</label>
+          <select id="c-topic" name="topic"><option>An order</option><option>A return</option><option value="Store visit">Booking a store visit</option><option>Something else</option></select><span class="err"></span></div>
+        <div class="f"><label for="c-order">Order number (optional)</label><input id="c-order" name="order" placeholder="NK-…"><span class="err"></span></div>
+        <div class="f" id="f-city" hidden><label for="c-city">City</label>
+          <select id="c-city" name="city"><option value="">Choose a city</option><option>Bengaluru</option><option>Chennai</option><option>Hyderabad</option><option>Kolkata</option><option>Mumbai</option><option>New Delhi</option></select><span class="err"></span></div>
+        <div class="f" id="f-date" hidden><label for="c-date">Preferred day</label><input id="c-date" name="date" type="date"><span class="err"></span></div>
+        <div class="f full"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required></textarea><span class="err"></span></div>
+        <div class="full"><button class="btn dark" type="submit" id="c-send">Send message</button></div>
+        <p class="sent" id="c-sent" role="status"></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="sfoot"><span class="logo">Neelkora</span><span>Prices include GST. Free standard shipping in India.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id), form = document.querySelector('.cform');
+  const topic = $('c-topic'), city = $('c-city'), date = $('c-date');
+  date.min = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+
+  const visit = () => { const on = topic.value === 'Store visit'; $('f-city').hidden = !on; $('f-date').hidden = !on; };
+  topic.addEventListener('change', visit);
+  const bookCity = c => {
+    topic.value = 'Store visit'; city.value = c; visit();
+    document.querySelectorAll('.cities [data-city]').forEach(b => b.setAttribute('aria-pressed', b.dataset.city === c));
+    if (!$('c-msg').value) $('c-msg').value = `I would like to visit the ${c} store.`;
+  };
+  document.querySelector('.cities').addEventListener('click', e => { const b = e.target.closest('[data-city]'); if (!b) return;
+    bookCity(b.dataset.city); $('contact').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); $('c-name').focus({preventScroll: true}); });
+  // arriving from a store card: help.html?city=Mumbai#visit
+  const fromCard = new URLSearchParams(location.search).get('city');
+  if (fromCard && [...city.options].some(o => o.value === fromCard)) bookCity(fromCard);
+  // signed in: fill what we know
+  const u = NK.account.get(); if (u) { $('c-name').value = u.name; if (u.email.includes('@')) $('c-email').value = u.email; }
+
+  const rules = {
+    'c-name': [v => v.trim().length >= 2, 'Enter your name.'],
+    'c-email': [v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()), 'Enter an email like name@example.com.'],
+    'c-city': [v => topic.value !== 'Store visit' || !!v, 'Choose a city.'],
+    'c-msg': [v => v.trim().length >= 5, 'Write a short message.'],
+  };
+  const check = el => { const r = rules[el.id]; if (!r) return true; const ok = r[0](el.value);
+    el.closest('.f').classList.toggle('bad', !ok); el.closest('.f').querySelector('.err').textContent = ok ? '' : r[1]; return ok; };
+  form.addEventListener('input', e => { if (e.target.closest('.bad')) check(e.target); });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const bad = Object.keys(rules).map($).filter(el => !check(el));
+    if (bad.length) return bad[0].focus();
+    const btn = $('c-send'), out = $('c-sent');
+    btn.disabled = true; btn.textContent = 'Sending…'; out.textContent = '';
+    try {
+      // Netlify Forms takes a normal form post at "/" (it only exists once the site is deployed on Netlify)
+      const r = await fetch('/', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams(new FormData(form)).toString()});
+      if (!r.ok) throw new Error(r.status);
+      const wasVisit = topic.value === 'Store visit';
+      form.reset(); visit();
+      out.textContent = wasVisit ? 'Thank you. We will email you to confirm a time for your visit.' : 'Thank you. Your message has reached us and we will reply by email, usually within one working day.';
+    } catch {
+      out.textContent = 'The message could not be sent from here. Messages are received once the site runs on Netlify; until then, please try again later.';
+    } finally { btn.disabled = false; btn.textContent = 'Send message'; }
+  });
+})();
+</script>
+</body>
+</html>

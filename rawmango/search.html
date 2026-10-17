@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<title>Search — Neelkora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  .shead{padding-top:clamp(48px,9vh,96px)}
+  .shead form{display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--fg);padding-bottom:12px}
+  .shead svg{width:30px;height:30px;flex:none;fill:none;stroke:currentColor;stroke-width:1.3}
+  .shead input{flex:1;min-width:0;background:none;border:0;outline:none;font-family:var(--serif);font-size:clamp(2.2rem,6vw,5rem);line-height:1.1}
+  .shead input::placeholder{color:var(--fg);opacity:.3}
+  .shead .clear{background:none;border:0;cursor:pointer;font-size:.8rem;letter-spacing:.01em}
+  .summary-line{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;font-size:.9rem}
+  .summary-line p{opacity:.7}
+  .try{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
+  .try span{font-family:var(--serif);font-style:italic;margin-right:6px;align-self:center}
+  .try a{padding:8px 16px;border:1px solid var(--line);border-radius:999px;font-size:.85rem;transition:background .3s,color .3s}
+  .try a:hover{background:var(--fg);color:var(--bg)}
+  .rgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(28px,4vw,48px) clamp(14px,2vw,28px);padding-top:40px}
+  @media (max-width:1000px){ .rgrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+  @media (max-width:640px){ .rgrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .pages{margin-top:56px;border-top:1px solid var(--line)}
+  .pages h2{font-family:var(--serif);font-weight:400;font-size:1.5rem;margin:28px 0 8px}
+  .pages a{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)}
+  .pages a span{opacity:.6;font-size:.85rem}
+  .nores{padding:56px 0 0}
+  .nores h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.8rem,3vw,2.6rem);margin-bottom:8px}
+  .nores p{opacity:.7}
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a href="shop.html">Shop</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li class="hide-sm"><a href="login.html" data-account>Sign in</a></li><li><a href="wishlist.html">Wishlist (<span data-wish-count>0</span>)</a></li><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main class="wrap">
+  <section class="shead">
+    <form role="search" id="sform">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" name="q" type="search" placeholder="What are you looking for?" aria-label="Search saris" autocomplete="off">
+      <button type="button" class="clear" id="clear">Clear</button>
+    </form>
+    <div class="summary-line"><p id="status" aria-live="polite"></p></div>
+    <div class="try"><span>Try</span><a href="?q=chanderi">Chanderi</a><a href="?q=brocade">Brocade</a><a href="?q=bridal">Bridal</a><a href="?q=reception">Reception</a><a href="?q=pink">Pink</a><a href="?q=cotton">Cotton</a><a href="?q=gold">Gold</a><a href="?q=silver">Silver</a></div>
+  </section>
+  <section class="rgrid" id="results" aria-label="Search results"></section>
+  <section class="pages" id="pages" hidden aria-label="Pages">
+    <h2>Pages</h2><div id="plist"></div>
+  </section>
+</main>
+
+<footer class="sfoot"><span class="logo">Neelkora</span><span>Press / anywhere on the site to search.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script>
+(() => {
+  const {search, highlight, esc, money} = NK;
+  // a few site pages are searchable too, so "stores" or "returns" lands somewhere useful
+  const PAGES = [
+    {t: 'Stores', d: 'Six stores across India', href: 'index.html#stores', k: 'stores visit shop bengaluru chennai hyderabad kolkata mumbai delhi'},
+    {t: 'The weaves', d: 'Chanderi, Ikat, Mashru and more', href: 'index.html#crafts', k: 'craft weave weaving chanderi ikat mashru sooti brocade laheriya'},
+    {t: 'How a sari is made', d: 'From dye vat to loom', href: 'index.html#making', k: 'making process weaver loom dye zari handloom'},
+    {t: 'Shop by occasion', d: 'Bridal, reception, mehendi, festive', href: 'index.html#occasions', k: 'occasion wedding bridal reception mehendi haldi festive gift'},
+    {t: 'Your wishlist', d: 'Saris you have saved', href: 'wishlist.html', k: 'wishlist saved favourites hearts'},
+    {t: 'Shipping', d: 'Free in India, express in 1 to 2 days', href: 'help.html#shipping', k: 'shipping delivery express courier dispatch'},
+    {t: 'Returns', d: '7 days for unworn saris', href: 'help.html#returns', k: 'returns refund exchange'},
+    {t: 'Book a store visit', d: 'By appointment, six cities', href: 'help.html#visit', k: 'store visit appointment book bengaluru chennai hyderabad kolkata mumbai delhi'},
+    {t: 'Contact us', d: 'We reply within a working day', href: 'help.html#contact', k: 'contact help email message support question'},
+    {t: 'Your account and orders', d: 'Sign in, order history', href: 'account.html#orders', k: 'account login sign in orders order history track returns'},
+  ];
+  const input = document.getElementById('q'), results = document.getElementById('results'), status = document.getElementById('status');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const run = (q, animate) => {
+    q = q.trim();
+    history.replaceState(null, '', q ? '?q=' + encodeURIComponent(q) : location.pathname);
+    document.title = q ? `“${q}” — Search — Neelkora` : 'Search — Neelkora';
+    const hits = search(q), words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const pages = q ? PAGES.filter(p => words.every(w => (p.t + ' ' + p.k).toLowerCase().includes(w))) : [];
+    status.textContent = !q ? 'Search by name, weave, colour or occasion.'
+      : !hits.length && pages.length ? `No saris for “${q}”, but ${pages.length === 1 ? 'one page matches' : pages.length + ' pages match'} below.`
+      : `${hits.length} ${hits.length === 1 ? 'sari' : 'saris'} for “${q}”`;
+    results.innerHTML = hits.map(p => `
+      <a class="card" href="product.html?id=${p.id}">
+        <div class="ph">${NK.heart(p.id)}<img src="${p.img}" alt="${esc(p.name)}, ${p.colour} ${p.weave} sari" loading="lazy"><img src="${p.alt}" alt="" loading="lazy"></div>
+        <h3><span style="font:inherit">${highlight(p.name, q)}</span><span>${money(p.price)}</span></h3>
+        <p>${highlight(p.weave + ', ' + p.colour, q)}</p>
+      </a>`).join('')
+      || (q && !pages.length ? `<div class="nores" style="grid-column:1/-1"><h2>Nothing matches “${esc(q)}”</h2><p>Check the spelling, use fewer words, or try one of the suggestions above.</p></div>` : '');
+    document.getElementById('pages').hidden = !pages.length;
+    document.getElementById('plist').innerHTML = pages.map(p => `<a href="${p.href}">${highlight(p.t, q)}<span>${p.d}</span></a>`).join('');
+    NK.render();
+    if (animate && window.gsap && !reduce && hits.length) gsap.from('#results .card', {y: 30, opacity: 0, duration: .8, stagger: .05, ease: 'expo.out', overwrite: true});
+  };
+
+  let t;
+  input.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => run(input.value, true), 160); });
+  document.getElementById('sform').addEventListener('submit', e => { e.preventDefault(); run(input.value, true); });
+  document.getElementById('clear').onclick = () => { input.value = ''; run('', false); input.focus(); };
+  input.value = new URLSearchParams(location.search).get('q') || '';
+  run(input.value, true);
+  input.focus();
+})();
+</script>
+</body>
+</html>

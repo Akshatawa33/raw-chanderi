@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nk-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(sessionStorage.getItem("nk-silk"))document.documentElement.classList.add("silk-in")}catch(e){}</script>
+<title>Shop Saris — Neelkora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<style>
+  /* hero: full-bleed campaign image, title sits on it */
+  .head{position:relative;height:calc(88svh - 67px);min-height:460px;overflow:hidden;color:var(--chalk);display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:clamp(32px,7vh,72px)}
+  .head picture,.head img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .head img{transform:scale(1.12);transform-origin:50% 30%}
+  .head::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(22,20,18,.78),rgba(22,20,18,.1) 60%)}
+  .head-copy{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .head h1{font-family:var(--serif);font-weight:400;font-size:clamp(3.4rem,11vw,10rem);line-height:.9;letter-spacing:-.02em}
+  .head h1 .ch{display:inline-block}
+  .head p{max-width:24rem;line-height:1.6;opacity:.9}
+  .head .jump{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .head .jump a{padding:8px 16px;border:1px solid rgba(244,241,236,.6);border-radius:999px;font-size:.82rem;transition:background .4s var(--ease),color .4s var(--ease)}
+  .head .jump a:hover{background:var(--chalk);color:var(--ink)}
+  .filters{position:sticky;top:67px;z-index:30;background:var(--bg);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-top:14px;padding-bottom:14px;display:flex;gap:12px 24px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:none;cursor:pointer;font-size:.85rem;transition:background .4s var(--ease),color .4s var(--ease)}
+  .chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+  .selects{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:.85rem}
+  .selects label{display:flex;gap:8px;align-items:center}
+  .selects select{background:none;border:0;border-bottom:1px solid var(--fg);padding:4px 18px 4px 2px;cursor:pointer}
+  .count-line{padding-top:24px;font-size:.85rem;opacity:.6}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(28px,4vw,48px) clamp(14px,2vw,28px);padding-top:24px}
+  .grid .card:nth-child(4n+2),.grid .card:nth-child(4n+4){margin-top:clamp(0px,5vw,64px)}  /* staggered, editorial rhythm */
+  @media (max-width:1000px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr))} .grid .card{margin-top:0 !important} }
+  @media (max-width:640px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} .filters{position:static}   /* on phones the filter block is too tall to keep pinned */
+    /* phones: three equal dropdown boxes in one row, each with its label above, instead of ragged lines */
+    .selects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+    .selects label{flex-direction:column;align-items:stretch;gap:4px;font-size:.78rem;opacity:.85}
+    .selects select{width:100%;min-width:0;padding:10px 16px 10px 6px;border:1px solid var(--line);font-size:16px;opacity:1}
+  }
+  .none{grid-column:1/-1;text-align:center;padding:80px 0}
+  .none p{font-family:var(--serif);font-size:1.6rem;margin-bottom:20px}
+</style>
+</head>
+<body>
+<header class="snav">
+  <ul><li><a class="on" href="shop.html">Shop</a></li><li class="hide-sm"><a href="index.html#crafts">Craft</a></li></ul>
+  <a class="logo" href="index.html">Neelkora</a>
+  <ul><li class="hide-sm"><a href="login.html" data-account>Sign in</a></li><li><a href="wishlist.html">Wishlist (<span data-wish-count>0</span>)</a></li><li><a href="#" data-bag-open>Bag (<span data-bag-count>0</span>)</a></li></ul>
+</header>
+
+<main>
+  <section class="head wrap" aria-label="Shop saris">
+    <picture>
+      <source media="(max-width:720px)" srcset="img/lookbook/lookbook-6-700.webp 700w, img/lookbook/lookbook-6-1200.webp 1200w" sizes="100vw">
+      <img src="img/banners/red-painted-wall-desktop-1920.webp" srcset="img/banners/red-painted-wall-desktop-1280.webp 1280w, img/banners/red-painted-wall-desktop-1920.webp 1920w" sizes="100vw" fetchpriority="high" alt="">
+    </picture>
+    <div class="head-copy">
+      <h1 data-split>All saris</h1>
+      <div>
+        <p>Eight drapes, each woven on a handloom. Filter by weave, by the day you are dressing for, or by what you want to spend.</p>
+        <nav class="jump" aria-label="Shop by occasion"><a href="?occasion=bridal">Bridal</a><a href="?occasion=reception">Reception</a><a href="?occasion=mehendi">Mehendi and haldi</a><a href="?occasion=festive">Festive</a></nav>
+      </div>
+    </div>
+  </section>
+
+  <div class="filters wrap">
+    <div class="chips" role="group" aria-label="Weave">
+      <button class="chip" data-weave="">All</button><button class="chip" data-weave="Chanderi">Chanderi</button><button class="chip" data-weave="Brocade">Brocade</button>
+      <button class="chip" data-weave="Cotton">Cotton</button><button class="chip" data-weave="Mashru">Mashru</button><button class="chip" data-weave="Organza">Organza</button>
+    </div>
+    <div class="selects">
+      <label>Occasion <select id="occasion"><option value="">Any</option></select></label>
+      <label>Price <select id="max"><option value="">Any</option><option value="10000">Under ₹10,000</option><option value="25000">Under ₹25,000</option><option value="50000">Under ₹50,000</option><option value="100000">Under ₹1,00,000</option></select></label>
+      <label>Sort <select id="sort"><option value="">Featured</option><option value="asc">Price, low to high</option><option value="desc">Price, high to low</option></select></label>
+    </div>
+  </div>
+
+  <p class="count-line wrap" id="countLine" aria-live="polite"></p>
+  <section class="grid wrap" id="grid" aria-label="Products"></section>
+</main>
+
+<footer class="sfoot"><span class="logo">Neelkora</span><span>Prices include GST. Free standard shipping in India.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="catalog.js"></script>
+<script src="store.js"></script>
+<script>
+(() => {
+  const {products, occasions, money, bag, openBag, flyToBag} = NK;
+  const q = new URLSearchParams(location.search);
+  const state = {weave: q.get('weave') || '', occasion: q.get('occasion') || '', max: q.get('max') || '', sort: q.get('sort') || ''};
+  const occ = document.getElementById('occasion');
+  Object.entries(occasions).forEach(([k, v]) => occ.add(new Option(v, k)));
+  ['occasion', 'max', 'sort'].forEach(k => { const s = document.getElementById(k); s.value = state[k]; s.onchange = () => { state[k] = s.value; draw(); }; });
+  const chips = document.querySelectorAll('.chip');
+  chips.forEach(c => c.onclick = () => { state.weave = c.dataset.weave; draw(); });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function draw() {
+    chips.forEach(c => c.setAttribute('aria-pressed', c.dataset.weave === state.weave));
+    // keep the URL shareable
+    history.replaceState(null, '', '?' + new URLSearchParams(Object.entries(state).filter(([, v]) => v)));
+    let list = products.filter(p => (!state.weave || p.weave === state.weave) && (!state.occasion || p.occasion === state.occasion) && (!state.max || p.price < +state.max));
+    if (state.sort) list = [...list].sort((a, b) => state.sort === 'asc' ? a.price - b.price : b.price - a.price);
+    document.getElementById('countLine').textContent = `${list.length} ${list.length === 1 ? 'sari' : 'saris'}`;
+    const grid = document.getElementById('grid');
+    grid.innerHTML = list.length ? list.map(p => `
+      <a class="card" href="product.html?id=${p.id}">
+        <div class="ph">${NK.heart(p.id)}<img src="${p.img}" alt="${p.name}, ${p.colour} ${p.weave} sari" loading="lazy"><img src="${p.alt}" alt="" loading="lazy">
+          <button class="quick" data-add="${p.id}">Add to bag</button></div>
+        <h3>${p.name}<span>${money(p.price)}</span></h3>
+        <p>${p.weave}, ${p.colour}</p>
+      </a>`).join('')
+      : `<div class="none"><p>No saris match all of these.</p><button class="btn" id="reset">Clear filters</button></div>`;
+    NK.render();   // mark saved hearts on the fresh cards
+    document.getElementById('reset')?.addEventListener('click', () => { Object.keys(state).forEach(k => state[k] = ''); ['occasion', 'max', 'sort'].forEach(k => document.getElementById(k).value = ''); draw(); });
+    if (window.gsap && !reduce) {
+      // cards rise from behind a mask in a wave
+      gsap.fromTo('.card', {y: 60, opacity: 0, clipPath: 'inset(20% 0 0 0)'}, {y: 0, opacity: 1, clipPath: 'inset(0% 0 0 0)', duration: 1.1, ease: 'expo.out', stagger: .06, overwrite: true});
+      window.ScrollTrigger?.refresh();
+    }
+  }
+  document.getElementById('grid').addEventListener('click', e => {
+    const b = e.target.closest('[data-add]'); if (!b) return;
+    e.preventDefault();
+    const img = b.closest('.ph').querySelector('img');
+    bag.add(b.dataset.add);
+    b.textContent = 'Added'; setTimeout(() => b.textContent = 'Add to bag', 1600);
+    flyToBag(img, openBag);
+  });
+  draw();
+
+  if (!window.gsap || reduce) return;
+  gsap.registerPlugin(ScrollTrigger);
+  const h = document.querySelector('[data-split]');
+  h.innerHTML = [...h.textContent].map(c => c === ' ' ? ' ' : `<span class="ch">${c}</span>`).join('');
+  gsap.from('.head .ch', {yPercent: 100, opacity: 0, duration: 1.2, stagger: .05, ease: 'expo.out', delay: .2});
+  gsap.from('.head-copy > div', {y: 30, opacity: 0, duration: 1.1, ease: 'expo.out', delay: .5});
+  gsap.to('.head img', {scale: 1, duration: 2.4, ease: 'expo.out'});
+  // hero image sinks and darkens as the grid scrolls up over it
+  gsap.to('.head picture', {yPercent: 22, ease: 'none', scrollTrigger: {trigger: '.head', start: 'top top', end: 'bottom top', scrub: true}});
+  gsap.to('.head-copy', {yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: {trigger: '.head', start: '30% top', end: 'bottom top', scrub: true}});
+  if (window.Lenis) { const l = window.lenis = new Lenis({duration: 1.3}); l.on('scroll', ScrollTrigger.update); gsap.ticker.add(t => l.raf(t * 1000)); gsap.ticker.lagSmoothing(0); }
+})();
+</script>
+</body>
+</html>
